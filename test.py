@@ -2,7 +2,7 @@
 ### Nail model API
 ### Han Seung Seog (whria78@gmail.com / http://whria.net) / http://medicalphoto.org
 ### 2017-3-5
-###
+### Adapted by Callum Arthurs
 
 import os
 import sys
@@ -22,6 +22,7 @@ def getname(i):
     for j, dx_ in enumerate(main_dx):
         if (dx_ == list_dx[i]): return main_dx2[j]
     return ""
+
 
 def get_basenames(img_path):
     basenames = []
@@ -58,7 +59,8 @@ def loadcaffemodel(modelbasepath, modelname, deployname, test_img_paths):
 
     # Read model architecture and trained model's weights
     print(os.path.join(modelbasepath, deployname), os.path.join(modelbasepath, modelname + '.caffemodel'))
-    net = caffe.Net(os.path.join(modelbasepath, deployname), os.path.join(modelbasepath, modelname + '.caffemodel'), caffe.TEST)
+    net = caffe.Net(os.path.join(modelbasepath, deployname), os.path.join(modelbasepath, modelname + '.caffemodel'),
+                    caffe.TEST)
 
     # Define image transformers
     transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
@@ -93,6 +95,7 @@ def loadmodel(train_dataset, train_type, exp_num, test_img_paths):
         if (train_dataset == 'asanplus'): start_iter = 70615
         name_caffemodel += str((start_iter + exp_num))
         return loadcaffemodel(model_path, name_caffemodel, deployname, test_img_paths)
+
 
 def run():
     IMAGE_WIDTH = 224
