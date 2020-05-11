@@ -93,6 +93,7 @@ main_dx = ['malignantmelanoma', 'basalcellcarcinoma', 'squamouscellcarcinoma', '
            'seborrheickeratosis', 'pigmentednevus', 'actinickeratosis', 'dermatofibroma', 'hemangioma', 'wart',
            'lentigo']
 
+
 def senderror(msg):
     print(msg)
     sys.exit(0)
@@ -177,6 +178,19 @@ def loadmodel(train_dataset, train_type, exp_num, test_img_paths):
         return loadcaffemodel(model_path, name_caffemodel, deployname, test_img_paths)
 
 
+def get_max_diagnosis(diagnosis):
+    """
+    get the max diagnosis value from a list of names
+    :param diagnosis: list [fname, [disease, number], [disease, number],...]
+    :return: the max diagnosis and name - ['Wart', 0.9997361302375793]
+    """
+    ints = [d[1] for d in diagnosis[1:]]
+    idx = ints.index(max(ints))  # get index of max value
+    final = diagnosis[idx + 1]  # added the plus one to account for name at idx 0
+    final.insert(0, os.path.split(diagnosis[0])[1])
+    return final
+
+
 def run():
     gpu_device = -1  # default = CPU
     if (len(sys.argv) > 5): gpu_device = int(sys.argv[5])
@@ -198,8 +212,6 @@ def run():
     if (len(sys.argv) > 4): exp_num = int(sys.argv[4])
 
     # list_dx
-
-
 
     for test_path in test_path_list:
         if (os.path.exists(test_path) == False):
@@ -257,9 +269,6 @@ def run():
     countall = 0.0
     correct = 0.0
 
-
-
-
     for final_ in final_result:
         countall += 1
         diagnosis = [final_[0]]
@@ -270,17 +279,18 @@ def run():
         #     print("  %s" % "unknown")
         # else:
         #     print("  %s" % getname(final_[2]))
-        print("Model's Prediction : ")
-        f_ = []
-        for i, p_ in enumerate(final_[1]):
-            thres_ = 10000
-            for j, dx_ in enumerate(main_dx):
-                if (dx_ == list_dx[i]):
-                    thres_ = threshold[j]
-            if (p_ * 10000 > thres_):
-                f_ += [(p_, getname(i))]
-                if i == final_[2]: correct += 1
-        f_ = sorted(f_, reverse=True)
+        # print("Model's Prediction : ")
+        # f_ = []
+        # for i, p_ in enumerate(final_[1]):
+        #     thres_ = 10000
+        #     for j, dx_ in enumerate(main_dx):
+        #         if (dx_ == list_dx[i]):
+        #             thres_ = threshold[j]
+        #     if (p_ * 10000 > thres_):
+        #         f_ += [(p_, getname(i))]
+        #         if i == final_[2]: correct += 1
+        # f_ = sorted(f_, reverse=True)
+
         for f in f_:
             print("  R/O %s" % f[1])
         print("Model's Output : ")
@@ -290,13 +300,13 @@ def run():
                     print("  %s : %.4f" % (getname(i), p_))
                     diagnosis.append([getname(i), p_])
                     results.append((getname(i), p_, final_[0]))
-        print(diagnosis)
 
-    print("Correct ratio : %.1f (%d / %d)" % (correct / countall * 100, correct, countall))
+        final_diagnosis = get_max_diagnosis(diagnosis)
+        print(final_diagnosis)
+
+    # print("Correct ratio : %.1f (%d / %d)" % (correct / countall * 100, correct, countall))
     return
 
 
 if __name__ == "__main__":
-
-
     run()
