@@ -306,7 +306,7 @@ def run():
         final_diagnosis = get_max_diagnosis(diagnosis)
         all_results.append(final_diagnosis)
         print(final_diagnosis)
-        if final_diagnosis[1] == "Wart":
+        if final_diagnosis[1] == "Malignant melanoma":
             correct += 1
 
 
