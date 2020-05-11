@@ -269,6 +269,8 @@ def run():
     countall = 0.0
     correct = 0.0
 
+    all_results = []
+
     for final_ in final_result:
         countall += 1
         diagnosis = [final_[0]]
@@ -302,10 +304,14 @@ def run():
                     results.append((getname(i), p_, final_[0]))
 
         final_diagnosis = get_max_diagnosis(diagnosis)
+        all_results.append(final_diagnosis)
         print(final_diagnosis)
+        if final_diagnosis[1] == "Wart":
+            correct += 1
 
-    # print("Correct ratio : %.1f (%d / %d)" % (correct / countall * 100, correct, countall))
-    return
+
+    print("Correct ratio : %.1f (%d / %d)" % (correct / countall * 100, correct, countall))
+    return all_results
 
 
 if __name__ == "__main__":
