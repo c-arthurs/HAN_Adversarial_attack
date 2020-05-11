@@ -173,7 +173,7 @@ def loadmodel(train_dataset, train_type, exp_num, test_img_paths):
         name_caffemodel = ''
         start_iter = 0
         if (train_dataset == 'asan'): start_iter = 59024
-        if (train_dataset == 'asanplus'): start_iter = 70615
+        if (train_dataset == 'asanplus'): start_iter = 70616
         name_caffemodel += str((start_iter + exp_num))
         return loadcaffemodel(model_path, name_caffemodel, deployname, test_img_paths)
 
