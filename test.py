@@ -12,6 +12,86 @@ from caffe.proto import caffe_pb2
 import numpy as np
 import cv2
 
+IMAGE_WIDTH = 224
+IMAGE_HEIGHT = 224
+
+# optimal threshold
+# Asan
+threshold = [726, 39, 172, 429, 166, 9, 227, 18, 14, 30, 1107, 305]
+# Edinburgh
+# threshold=[32,996,96,76,7,272,332,3,63,238,10000,10000]
+
+# define alias here
+list_alias = []
+
+list_dx = ['abnom', 'abscess', 'acanthosisnigricans', 'acne', 'acneiformeruption', 'acnescar',
+           'acrallentiginousnevus',
+           'actiniccheilitis', 'actinickeratosis', 'acutegeneralizedexanthematouspustulosis', 'acutegvhd',
+           'adultonsetstillsdisease', 'allergiccontactdermatitis', 'allergicvasculitis', 'alopecia',
+           'alopeciaareata',
+           'amyloidosis', 'androgenicalopecia', 'angioedema', 'angiofibroma', 'angiokeratoma', 'angiolipoma',
+           'ashydermatitis', 'ashydermatosis', 'atopicdermatitis', 'atypicalmycobacterialinfection',
+           'basalcellcarcinoma', 'basalcellcarcinoma_postop', 'beckernevus', 'behcetdisease', 'bluenevus',
+           'bowendisease', 'bowenoidpapulosis', 'bullousdisease', 'bullousdrugeruption', 'bullouspemphigoid',
+           'burn',
+           'burnscar', 'cafeaulaitmacule', 'calcinosiscutis', 'callus', 'cellulitis',
+           'cetuximabinducedacneiformeruption', 'cheilitis', 'chickenpox', 'cholinergicurticaria', 'chroniceczema',
+           'chronicgvhd', 'chronicurticaria', 'coldinducedurticaria', 'condyloma',
+           'confluentreticulatedpapillomatosis',
+           'congenitalnevus', 'connectivetissuedisease', 'contactcheilitis', 'contactdermatitis', 'cutaneoushorn',
+           'cyst', 'darkcircle', 'depressedscar', 'dermatitisherpetiformis', 'dermatofibroma', 'dermatomyositis',
+           'dilatedpore', 'dirtyneck', 'dohimelanosis', 'drugeruption', 'dyshidroticeczema', 'dysplasticnevus',
+           'eczema', 'eczemaherpeticum', 'epidermalcyst', 'epidermalnevus', 'eruptivesyringoma', 'erythemaabigne',
+           'erythemaannularecentrifugum', 'erythemamultiforme', 'erythemanodosum', 'exfoliativedermatitis',
+           'extramammarypagetdisease', 'fibroma', 'fixeddrugeruption', 'folliculitis', 'fordycespot',
+           'foreignbodygranuloma', 'foreignbodyreaction', 'freckle', 'fungalinfection', 'furuncle', 'glomustumor',
+           'graftversushostdisease', 'granuloma', 'granulomaannulare', 'guttatepsoriasis', 'handeczema',
+           'hemangioma',
+           'hematoma', 'henochschonleinpurpura', 'herpessimplex', 'herpeszoster', 'hyperpigmentation',
+           'hypersensitivityvasculitis', 'hypertrophicscar', 'hypopigmentation', 'idiopathicguttatehypomelanosis',
+           'idreaction', 'impetigo', 'inflammedcyst', 'ingrowingnail', 'insectbite', 'intradermalnevus',
+           'irritantcontactdermatitis', 'irritatedlentigo', 'irritatedseborrheickeratosis',
+           'juvenilexanthogranuloma',
+           'kaposisarcoma', 'keloid', 'keratoacanthoma', 'keratoderma', 'keratosispilaris',
+           'langerhanscellhistiocytosis', 'lasertoning', 'lentigo', 'leukemiacutis', 'leukocytoclasticvasculitis',
+           'lichenamyloidosis', 'lichennitidus', 'lichenoiddrugeruption', 'lichenplanus', 'lichensimplexchronicus',
+           'lichenstriatus', 'lipoma', 'lipomatosis', 'livedoidvasculitis', 'livedoreticularis', 'lmdf',
+           'lupuserythematosus', 'lymphangioma', 'lymphoma', 'lymphomatoidpapulosis', 'malignantmelanoma',
+           'mastocytoma', 'mastocytosis', 'melanocyticnevus', 'melanonychia', 'melasma', 'metastasis', 'milia',
+           'milium', 'molluscumcontagiosum', 'morphea', 'mucocele', 'mucosalmelanoticmacule', 'mucouscyst',
+           'mycosisfungoides', 'naildystrophy', 'neurofibroma', 'neurofibromatosis', 'nevus_postop',
+           'nevusdepigmentosus', 'nevussebaceus', 'nevusspilus', 'nippleeczema', 'normalnail', 'ntminfection',
+           'nummulareczema', 'onycholysis', 'onychomycosis', 'organoidnevus', 'otanevus', 'otherdermatitis',
+           'pagetsdisease', 'palmoplantarpustulosis', 'panniculitis', 'papularurticaria', 'parapsoriasis',
+           'paronychia',
+           'pemphigusfoliaceus', 'pemphigusvulgaris', 'perioraldermatitis', 'photosensitivedermatitis',
+           'pigmentedcontactdermatitis', 'pigmentednevus', 'pigmentedprogressivepurpuricdermatosis', 'pilarcyst',
+           'pilomatricoma', 'pityriasisalba', 'pityriasislichenoideschronica',
+           'pityriasislichenoidesetvarioliformisacuta', 'pityriasisrosea', 'pityriasisrubrapilaris', 'poikiloderma',
+           'pompholyx', 'porokeratosis', 'poroma', 'portwinestain', 'postinflammatoryhyperpigmentation',
+           'prurigonodularis', 'prurigopigmentosa', 'pruritus', 'pseudolymphoma', 'psoriasis', 'puppp', 'purpura',
+           'pustularpsoriasis', 'pyodermagangrenosum', 'pyogenicgranuloma', 'rhielmelanosis', 'rosacea',
+           'rupturedcyst',
+           'sarcoidosis', 'scabies', 'scar', 'scar_postlaser', 'scar_postop', 'scc_postop', 'scleroderma',
+           'sebaceoushyperplasia', 'seborrheicdermatitis', 'seborrheickeratosis', 'skintag', 'softfibroma',
+           'squamouscellcarcinoma', 'staphylococcalscaldedskinsyndrome', 'stasisdermatitis',
+           'steatocystomamultiplex',
+           'steroidrosacea', 'striaedistensae', 'subcutaneousnodule', 'subungalhematoma', 'sweetsyndrome',
+           'syringoma',
+           'systemiccontactdermatitis', 'systemiclupuserythematosus', 'tattoo', 'telangiectasia', 'tineacorporis',
+           'tineafaciale', 'tineapedis', 'toxicepidermalnecrolysis', 'traumaticfatnecrosis', 'traumatictattoo',
+           'ulcer',
+           'urticaria', 'urticarialvasculitis', 'urticariapigmentosa', 'varicella', 'vascularmalformation',
+           'vasculitis', 'venouslake', 'venousmalformation', 'verrucaplana', 'viralexanthem', 'vitiligo', 'wart',
+           'wrinkle', 'xanthelasma', 'xanthogranuloma', 'xanthoma', 'xeroticeczema']
+
+main_dx2 = ['Malignant melanoma', 'Basal cell carcinoma', 'Squamous cell carcinoma', 'Intraepithelial carcinoma',
+            'Pyogenic granuloma', 'Seborrheic keratosis', 'Melanocytic nevus', 'Actinic keratosis',
+            'Dermatofibroma',
+            'Hemangioma', 'Wart', 'Lentigo']
+main_dx = ['malignantmelanoma', 'basalcellcarcinoma', 'squamouscellcarcinoma', 'bowendisease', 'pyogenicgranuloma',
+           'seborrheickeratosis', 'pigmentednevus', 'actinickeratosis', 'dermatofibroma', 'hemangioma', 'wart',
+           'lentigo']
 
 def senderror(msg):
     print(msg)
@@ -98,9 +178,6 @@ def loadmodel(train_dataset, train_type, exp_num, test_img_paths):
 
 
 def run():
-    IMAGE_WIDTH = 224
-    IMAGE_HEIGHT = 224
-
     gpu_device = -1  # default = CPU
     if (len(sys.argv) > 5): gpu_device = int(sys.argv[5])
     if (gpu_device == -1):
@@ -121,83 +198,8 @@ def run():
     if (len(sys.argv) > 4): exp_num = int(sys.argv[4])
 
     # list_dx
-    list_dx = ['abnom', 'abscess', 'acanthosisnigricans', 'acne', 'acneiformeruption', 'acnescar',
-               'acrallentiginousnevus',
-               'actiniccheilitis', 'actinickeratosis', 'acutegeneralizedexanthematouspustulosis', 'acutegvhd',
-               'adultonsetstillsdisease', 'allergiccontactdermatitis', 'allergicvasculitis', 'alopecia',
-               'alopeciaareata',
-               'amyloidosis', 'androgenicalopecia', 'angioedema', 'angiofibroma', 'angiokeratoma', 'angiolipoma',
-               'ashydermatitis', 'ashydermatosis', 'atopicdermatitis', 'atypicalmycobacterialinfection',
-               'basalcellcarcinoma', 'basalcellcarcinoma_postop', 'beckernevus', 'behcetdisease', 'bluenevus',
-               'bowendisease', 'bowenoidpapulosis', 'bullousdisease', 'bullousdrugeruption', 'bullouspemphigoid',
-               'burn',
-               'burnscar', 'cafeaulaitmacule', 'calcinosiscutis', 'callus', 'cellulitis',
-               'cetuximabinducedacneiformeruption', 'cheilitis', 'chickenpox', 'cholinergicurticaria', 'chroniceczema',
-               'chronicgvhd', 'chronicurticaria', 'coldinducedurticaria', 'condyloma',
-               'confluentreticulatedpapillomatosis',
-               'congenitalnevus', 'connectivetissuedisease', 'contactcheilitis', 'contactdermatitis', 'cutaneoushorn',
-               'cyst', 'darkcircle', 'depressedscar', 'dermatitisherpetiformis', 'dermatofibroma', 'dermatomyositis',
-               'dilatedpore', 'dirtyneck', 'dohimelanosis', 'drugeruption', 'dyshidroticeczema', 'dysplasticnevus',
-               'eczema', 'eczemaherpeticum', 'epidermalcyst', 'epidermalnevus', 'eruptivesyringoma', 'erythemaabigne',
-               'erythemaannularecentrifugum', 'erythemamultiforme', 'erythemanodosum', 'exfoliativedermatitis',
-               'extramammarypagetdisease', 'fibroma', 'fixeddrugeruption', 'folliculitis', 'fordycespot',
-               'foreignbodygranuloma', 'foreignbodyreaction', 'freckle', 'fungalinfection', 'furuncle', 'glomustumor',
-               'graftversushostdisease', 'granuloma', 'granulomaannulare', 'guttatepsoriasis', 'handeczema',
-               'hemangioma',
-               'hematoma', 'henochschonleinpurpura', 'herpessimplex', 'herpeszoster', 'hyperpigmentation',
-               'hypersensitivityvasculitis', 'hypertrophicscar', 'hypopigmentation', 'idiopathicguttatehypomelanosis',
-               'idreaction', 'impetigo', 'inflammedcyst', 'ingrowingnail', 'insectbite', 'intradermalnevus',
-               'irritantcontactdermatitis', 'irritatedlentigo', 'irritatedseborrheickeratosis',
-               'juvenilexanthogranuloma',
-               'kaposisarcoma', 'keloid', 'keratoacanthoma', 'keratoderma', 'keratosispilaris',
-               'langerhanscellhistiocytosis', 'lasertoning', 'lentigo', 'leukemiacutis', 'leukocytoclasticvasculitis',
-               'lichenamyloidosis', 'lichennitidus', 'lichenoiddrugeruption', 'lichenplanus', 'lichensimplexchronicus',
-               'lichenstriatus', 'lipoma', 'lipomatosis', 'livedoidvasculitis', 'livedoreticularis', 'lmdf',
-               'lupuserythematosus', 'lymphangioma', 'lymphoma', 'lymphomatoidpapulosis', 'malignantmelanoma',
-               'mastocytoma', 'mastocytosis', 'melanocyticnevus', 'melanonychia', 'melasma', 'metastasis', 'milia',
-               'milium', 'molluscumcontagiosum', 'morphea', 'mucocele', 'mucosalmelanoticmacule', 'mucouscyst',
-               'mycosisfungoides', 'naildystrophy', 'neurofibroma', 'neurofibromatosis', 'nevus_postop',
-               'nevusdepigmentosus', 'nevussebaceus', 'nevusspilus', 'nippleeczema', 'normalnail', 'ntminfection',
-               'nummulareczema', 'onycholysis', 'onychomycosis', 'organoidnevus', 'otanevus', 'otherdermatitis',
-               'pagetsdisease', 'palmoplantarpustulosis', 'panniculitis', 'papularurticaria', 'parapsoriasis',
-               'paronychia',
-               'pemphigusfoliaceus', 'pemphigusvulgaris', 'perioraldermatitis', 'photosensitivedermatitis',
-               'pigmentedcontactdermatitis', 'pigmentednevus', 'pigmentedprogressivepurpuricdermatosis', 'pilarcyst',
-               'pilomatricoma', 'pityriasisalba', 'pityriasislichenoideschronica',
-               'pityriasislichenoidesetvarioliformisacuta', 'pityriasisrosea', 'pityriasisrubrapilaris', 'poikiloderma',
-               'pompholyx', 'porokeratosis', 'poroma', 'portwinestain', 'postinflammatoryhyperpigmentation',
-               'prurigonodularis', 'prurigopigmentosa', 'pruritus', 'pseudolymphoma', 'psoriasis', 'puppp', 'purpura',
-               'pustularpsoriasis', 'pyodermagangrenosum', 'pyogenicgranuloma', 'rhielmelanosis', 'rosacea',
-               'rupturedcyst',
-               'sarcoidosis', 'scabies', 'scar', 'scar_postlaser', 'scar_postop', 'scc_postop', 'scleroderma',
-               'sebaceoushyperplasia', 'seborrheicdermatitis', 'seborrheickeratosis', 'skintag', 'softfibroma',
-               'squamouscellcarcinoma', 'staphylococcalscaldedskinsyndrome', 'stasisdermatitis',
-               'steatocystomamultiplex',
-               'steroidrosacea', 'striaedistensae', 'subcutaneousnodule', 'subungalhematoma', 'sweetsyndrome',
-               'syringoma',
-               'systemiccontactdermatitis', 'systemiclupuserythematosus', 'tattoo', 'telangiectasia', 'tineacorporis',
-               'tineafaciale', 'tineapedis', 'toxicepidermalnecrolysis', 'traumaticfatnecrosis', 'traumatictattoo',
-               'ulcer',
-               'urticaria', 'urticarialvasculitis', 'urticariapigmentosa', 'varicella', 'vascularmalformation',
-               'vasculitis', 'venouslake', 'venousmalformation', 'verrucaplana', 'viralexanthem', 'vitiligo', 'wart',
-               'wrinkle', 'xanthelasma', 'xanthogranuloma', 'xanthoma', 'xeroticeczema']
 
-    main_dx2 = ['Malignant melanoma', 'Basal cell carcinoma', 'Squamous cell carcinoma', 'Intraepithelial carcinoma',
-                'Pyogenic granuloma', 'Seborrheic keratosis', 'Melanocytic nevus', 'Actinic keratosis',
-                'Dermatofibroma',
-                'Hemangioma', 'Wart', 'Lentigo']
-    main_dx = ['malignantmelanoma', 'basalcellcarcinoma', 'squamouscellcarcinoma', 'bowendisease', 'pyogenicgranuloma',
-               'seborrheickeratosis', 'pigmentednevus', 'actinickeratosis', 'dermatofibroma', 'hemangioma', 'wart',
-               'lentigo']
 
-    # optimal threshold
-    # Asan
-    threshold = [726, 39, 172, 429, 166, 9, 227, 18, 14, 30, 1107, 305]
-    # Edinburgh
-    # threshold=[32,996,96,76,7,272,332,3,63,238,10000,10000]
-
-    # define alias here
-    list_alias = []
 
     for test_path in test_path_list:
         if (os.path.exists(test_path) == False):
@@ -295,4 +297,6 @@ def run():
 
 
 if __name__ == "__main__":
+
+
     run()
