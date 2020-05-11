@@ -6,7 +6,7 @@
 
 import os
 import sys
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import caffe
 from caffe.proto import caffe_pb2
 import numpy as np
@@ -254,8 +254,13 @@ def run():
 
     countall = 0.0
     correct = 0.0
+
+
+
+
     for final_ in final_result:
         countall += 1
+        diagnosis = [final_[0]]
         print("\n")
         print("Image path : %s" % final_[0])
         # print("Correct Diagnosis : ")
@@ -281,8 +286,12 @@ def run():
             for j, dx_ in enumerate(main_dx):
                 if (dx_ == list_dx[i]):
                     print("  %s : %.4f" % (getname(i), p_))
+                    diagnosis.append([getname(i), p_])
                     results.append((getname(i), p_, final_[0]))
+        print(diagnosis)
+
     print("Correct ratio : %.1f (%d / %d)" % (correct / countall * 100, correct, countall))
+    return
 
 
 if __name__ == "__main__":
