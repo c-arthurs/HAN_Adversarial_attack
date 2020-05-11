@@ -280,16 +280,16 @@ def run():
         # else:
         #     print("  %s" % getname(final_[2]))
         # print("Model's Prediction : ")
-        # f_ = []
-        # for i, p_ in enumerate(final_[1]):
-        #     thres_ = 10000
-        #     for j, dx_ in enumerate(main_dx):
-        #         if (dx_ == list_dx[i]):
-        #             thres_ = threshold[j]
-        #     if (p_ * 10000 > thres_):
-        #         f_ += [(p_, getname(i))]
-        #         if i == final_[2]: correct += 1
-        # f_ = sorted(f_, reverse=True)
+        f_ = []
+        for i, p_ in enumerate(final_[1]):
+            thres_ = 10000
+            for j, dx_ in enumerate(main_dx):
+                if (dx_ == list_dx[i]):
+                    thres_ = threshold[j]
+            if (p_ * 10000 > thres_):
+                f_ += [(p_, getname(i))]
+                if i == final_[2]: correct += 1
+        f_ = sorted(f_, reverse=True)
 
         for f in f_:
             print("  R/O %s" % f[1])
