@@ -164,6 +164,7 @@ class RotationTranslationAttack:
         return adv_image
 
 
+
 def run_attack(attack, img_path, filename, target, fig_path, save=True):
     global difev_vars
     assert difev_vars.model is not None
@@ -226,6 +227,35 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
         return 'failed'
 
 
+def attack_all_caffe(attack, img_path, results_path, fig_path):
+    """
+    Run attacks on all images in the validation set
+    """
+    import os
+    from shutil import copyfile
+
+    if attack == 'pixel':
+        attack = PixelAttack()
+    elif attack == 'color':
+        attack = ColorAttack()
+    elif attack == 'rotation':
+        attack = RotationTranslationAttack()
+    attack.d = 3
+    target = 'nevus'
+    # load model to attack
+
+
+    # difev_vars.model, _ = classify.initialize_model('inception', num_classes=2, feature_extract=False,
+    #                                                 use_pretrained=False, load=True)
+
+
+
+
+
+
+
+
+
 def attack_all(attack, img_path, results_path, fig_path):
     """
     Run attacks on all images in the validation set
@@ -242,10 +272,14 @@ def attack_all(attack, img_path, results_path, fig_path):
     attack.d = 3
     target = 'nevus'
     # load model to attack
-    difev_vars.model, _ = classify.initialize_model('inception', num_classes=2, feature_extract=False,
-                                                    use_pretrained=False, load=True)
-    difev_vars.model.cuda()
-    difev_vars.model.eval()
+
+
+    # difev_vars.model, _ = classify.initialize_model('inception', num_classes=2, feature_extract=False,
+    #                                                 use_pretrained=False, load=True)
+
+
+    # difev_vars.model.cuda()
+    # difev_vars.model.eval()
     results = {}
     if os.path.exists(results_path + os.sep + 'results.pkl'):
         results = pickle.load(open(results_path + 'results.pkl', 'rb'))

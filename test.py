@@ -127,7 +127,6 @@ def transform_img(img, img_width=IMAGE_WIDTH, img_height=IMAGE_HEIGHT):
 
     # Image Resizing
     img = cv2.resize(img, (img_width, img_height), interpolation=cv2.INTER_CUBIC)
-
     return img
 
 
@@ -295,7 +294,7 @@ def run():
 
         for f in f_:
             print("  R/O %s" % f[1])
-            if f[1] == "Wart":
+            if f[1] == "Pyogenic granuloma":
                 correct += 1
 
         print("Model's Output : ")
