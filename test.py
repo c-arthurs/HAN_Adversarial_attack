@@ -193,9 +193,9 @@ def run():
     # gpu_device = -1  # default = CPU
     # if (len(sys.argv) > 5): gpu_device = int(sys.argv[5])
     # if (gpu_device == -1):
-    #     caffe.set_mode_cpu()
+    caffe.set_mode_cpu()
     # else:
-    caffe.set_mode_gpu()
+    # caffe.set_mode_gpu()
         # caffe.set_device(gpu_device)
     # print("GPU - ", gpu_device)
 
