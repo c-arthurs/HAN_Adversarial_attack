@@ -274,12 +274,12 @@ def attack_all(attack, img_path, results_path, fig_path):
     # load model to attack
 
 
-    # difev_vars.model, _ = classify.initialize_model('inception', num_classes=2, feature_extract=False,
-    #                                                 use_pretrained=False, load=True)
+    difev_vars.model, _ = classify.initialize_model('inception', num_classes=2, feature_extract=False,
+                                                    use_pretrained=False, load=True)
 
 
-    # difev_vars.model.cuda()
-    # difev_vars.model.eval()
+    difev_vars.model.cuda()
+    difev_vars.model.eval()
     results = {}
     if os.path.exists(results_path + os.sep + 'results.pkl'):
         results = pickle.load(open(results_path + 'results.pkl', 'rb'))

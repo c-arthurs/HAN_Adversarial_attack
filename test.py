@@ -197,7 +197,7 @@ def run():
     else:
         caffe.set_mode_gpu()
         caffe.set_device(gpu_device)
-    print("GPU - ", gpu_device)
+    # print("GPU - ", gpu_device)
 
     # test_path   path1;path2;path3
     if (len(sys.argv) > 1): test_path_list = str(sys.argv[1]).split(';')
@@ -218,7 +218,7 @@ def run():
         print("Test Path : ", test_path)
 
     ### Get list of indexes ###
-    print("DX List : ", list_dx)
+    # print("DX List : ", list_dx)
 
     test_img_paths = []
     for test_path in test_path_list:
@@ -234,88 +234,100 @@ def run():
 
     # run model
 
+    def predict_image():
+
+
+
+
+
     model_path, name_caffemodel, deployname, test_img_paths = loadmodel(train_dataset, train_type, exp_num, test_img_paths)
-    # modelnail = loadcaffemodel(model_path, name_caffemodel, deployname, test_img_paths)
+
+
+
+
+
+
+    modelnail = loadcaffemodel(model_path, name_caffemodel, deployname, test_img_paths)
+
+
+    final_result = []
+    for i, img_path in enumerate(test_img_paths):
+        model_result = []
+        temp = []
+
+        # print("hi - ", img_path)
+        for modelnail_ in modelnail:
+            if (modelnail_[0] == img_path):
+                model_result = modelnail_[1]
+                # print("result - ", model_result)
+
+        # get right index from folder name
+        right_dx_index = -1
+        right_dx_name = ''
+        for i, dx_ in enumerate(main_dx2):
+            if dx_ in get_basenames(img_path):
+                right_dx_name = main_dx[i]
+                for j, dx2_ in enumerate(list_dx):
+                    if (dx2_ == right_dx_name):
+                        right_dx_index = j
+        # print "Diagnosis identified by the name of folder: ",list_dx[right_dx_index]
+
+        final_result += [(img_path, model_result, right_dx_index)]
     #
+    # Print Result
     #
-    # final_result = []
-    # for i, img_path in enumerate(test_img_paths):
-    #     model_result = []
-    #     temp = []
-    #
-    #     print("hi - ", img_path)
-    #     for modelnail_ in modelnail:
-    #         if (modelnail_[0] == img_path):
-    #             model_result = modelnail_[1]
-    #             # print("result - ", model_result)
-    #
-    #     # get right index from folder name
-    #     right_dx_index = -1
-    #     right_dx_name = ''
-    #     for i, dx_ in enumerate(main_dx2):
-    #         if dx_ in get_basenames(img_path):
-    #             right_dx_name = main_dx[i]
-    #             for j, dx2_ in enumerate(list_dx):
-    #                 if (dx2_ == right_dx_name):
-    #                     right_dx_index = j
-    #     # print "Diagnosis identified by the name of folder: ",list_dx[right_dx_index]
-    #
-    #     final_result += [(img_path, model_result, right_dx_index)]
-    # #
-    # # Print Result
-    # #
-    #
-    # results = []
-    #
-    # countall = 0.0
-    # correct = 0.0
-    #
-    # all_results = []
-    #
-    # for final_ in final_result:
-    #     countall += 1
-    #     diagnosis = [final_[0]]
-    #     print("\n")
-    #     print("Image path : %s" % final_[0])
-    #     # print("Correct Diagnosis : ")
-    #     # if (final_[2] == -1):
-    #     #     print("  %s" % "unknown")
-    #     # else:
-    #     #     print("  %s" % getname(final_[2]))
-    #     # print("Model's Prediction : ")
-    #     f_ = []
-    #     for i, p_ in enumerate(final_[1]):
-    #         thres_ = 10000
-    #         for j, dx_ in enumerate(main_dx):
-    #             if (dx_ == list_dx[i]):
-    #                 thres_ = threshold[j]
-    #         if (p_ * 10000 > thres_):
-    #             f_ += [(p_, getname(i))]
-    #             if i == final_[2]: correct += 1
-    #     f_ = sorted(f_, reverse=True)
-    #
-    #     for f in f_:
-    #         print("  R/O %s" % f[1])
-    #         if f[1] == "Pyogenic granuloma":
-    #             correct += 1
-    #
-    #     print("Model's Output : ")
-    #     for i, p_ in enumerate(final_[1]):
-    #         for j, dx_ in enumerate(main_dx):
-    #             if (dx_ == list_dx[i]):
-    #                 print("  %s : %.4f" % (getname(i), p_))
-    #                 diagnosis.append([getname(i), p_])
-    #                 results.append((getname(i), p_, final_[0]))
-    #
-    #     final_diagnosis = get_max_diagnosis(diagnosis)
-    #     all_results.append(final_diagnosis)
-    #     print(final_diagnosis)
-    #
-    #
-    #
-    # print("Correct ratio : %.1f (%d / %d)" % (correct / countall * 100, correct, countall))
-    # return all_results
-    #
+
+    results = []
+
+    countall = 0.0
+    correct = 0.0
+
+    all_results = []
+
+    for final_ in final_result:
+        countall += 1
+        diagnosis = [final_[0]]
+        print("\n")
+        print("Image path : %s" % final_[0])
+        # print("Correct Diagnosis : ")
+        # if (final_[2] == -1):
+        #     print("  %s" % "unknown")
+        # else:
+        #     print("  %s" % getname(final_[2]))
+        # print("Model's Prediction : ")
+        f_ = []
+        for i, p_ in enumerate(final_[1]):
+            thres_ = 10000
+            for j, dx_ in enumerate(main_dx):
+                if (dx_ == list_dx[i]):
+                    thres_ = threshold[j]
+            if (p_ * 10000 > thres_):
+                f_ += [(p_, getname(i))]
+                if i == final_[2]: correct += 1
+        f_ = sorted(f_, reverse=True)
+
+        for f in f_:
+            print("  R/O %s" % f[1])
+            if f[1] == "Pyogenic granuloma":
+                correct += 1
+
+        print("Model's Output : ")
+        for i, p_ in enumerate(final_[1]):
+            for j, dx_ in enumerate(main_dx):
+                if (dx_ == list_dx[i]):
+                    print("  %s : %.4f" % (getname(i), p_))
+                    diagnosis.append([getname(i), p_])
+                    results.append((getname(i), p_, final_[0]))
+
+        final_diagnosis = get_max_diagnosis(diagnosis)
+        all_results.append(final_diagnosis)
+        print(final_diagnosis)
+
+
+
+    print("Correct ratio : %.1f (%d / %d)" % (correct / countall * 100, correct, countall))
+    return all_results
+
 
 if __name__ == "__main__":
     run()
