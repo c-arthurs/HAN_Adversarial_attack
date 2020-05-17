@@ -174,8 +174,7 @@ def loadmodel(train_dataset, train_type, exp_num, test_img_paths):
         if (train_dataset == 'asan'): start_iter = 59024
         if (train_dataset == 'asanplus'): start_iter = 70616
         name_caffemodel += str((start_iter + exp_num))
-        return loadcaffemodel(model_path, name_caffemodel, deployname, test_img_paths)
-
+        return model_path, name_caffemodel, deployname, test_img_paths
 
 def get_max_diagnosis(diagnosis):
     """
@@ -233,8 +232,11 @@ def run():
             print("No image (.jpg .gif .png) exist at " + test_path)
             sys.exit(0)
 
-        # run model
-    modelnail = loadmodel(train_dataset, train_type, exp_num, test_img_paths)
+    # run model
+
+    model_path, name_caffemodel, deployname, test_img_paths = loadmodel(train_dataset, train_type, exp_num, test_img_paths)
+    modelnail = loadcaffemodel(model_path, name_caffemodel, deployname, test_img_paths)
+
 
     final_result = []
     for i, img_path in enumerate(test_img_paths):
