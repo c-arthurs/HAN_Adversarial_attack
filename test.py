@@ -190,13 +190,13 @@ def get_max_diagnosis(diagnosis):
 
 
 def run():
-    gpu_device = -1  # default = CPU
-    if (len(sys.argv) > 5): gpu_device = int(sys.argv[5])
-    if (gpu_device == -1):
-        caffe.set_mode_cpu()
-    else:
-        caffe.set_mode_gpu()
-        caffe.set_device(gpu_device)
+    # gpu_device = -1  # default = CPU
+    # if (len(sys.argv) > 5): gpu_device = int(sys.argv[5])
+    # if (gpu_device == -1):
+    #     caffe.set_mode_cpu()
+    # else:
+    caffe.set_mode_gpu()
+        # caffe.set_device(gpu_device)
     # print("GPU - ", gpu_device)
 
     # test_path   path1;path2;path3
