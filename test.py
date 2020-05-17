@@ -295,7 +295,7 @@ def run():
 
         for f in f_:
             print("  R/O %s" % f[1])
-            if f == "Wart":
+            if f[1] == "Wart":
                 correct += 1
 
         print("Model's Output : ")
