@@ -200,7 +200,7 @@ def run():
     # print("GPU - ", gpu_device)
 
     # test_path   path1;path2;path3
-    test_path_list = "/hdd1/Callum/CAFFE/test-asan test/biopsy/pyogenicgranuloma"
+    test_path_list = ["/hdd1/Callum/CAFFE/test-asan test/biopsy/pyogenicgranuloma"]
     train_dataset = "asan"
     train_type = 0
     exp_num = 0
