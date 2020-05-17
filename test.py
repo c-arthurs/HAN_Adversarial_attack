@@ -153,7 +153,6 @@ def loadcaffemodel(modelbasepath, modelname, deployname, test_img_paths):
         if img is None:
             continue
         img = transform_img(img, img_width=IMAGE_WIDTH, img_height=IMAGE_HEIGHT)
-
         net.blobs['data'].data[...] = transformer.preprocess('data', img)
         out = net.forward()
         pred_probas = out['prob']

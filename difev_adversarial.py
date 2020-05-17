@@ -244,6 +244,11 @@ def attack_all_caffe(attack, img_path, results_path, fig_path):
     target = 'nevus'
     # load model to attack
 
+    import caffe
+    from caffe.proto import caffe_pb2
+
+
+
 
     # difev_vars.model, _ = classify.initialize_model('inception', num_classes=2, feature_extract=False,
     #                                                 use_pretrained=False, load=True)
@@ -354,11 +359,15 @@ def plot_results():
 
 if __name__ == "__main__":
     attack = 'pixel'
-    attack_all(attack, img_path='./melanoma/', results_path='./difev/',
-               fig_path='./difev/' + attack + '/')
-    attack = 'color'
-    attack_all(attack, img_path='./melanoma/', results_path='./difev/',
-               fig_path='./difev/' + attack + '_colour_jitter/')
-    attack = 'rotation'
-    attack_all(attack, img_path='./melanoma/', results_path='./difev/',
-               fig_path='./difev/' + attack + '/')
+    attack_all_caffe(attack, img_path='./melanoma/', results_path='./difev/',
+                     fig_path='./difev/' + attack + '/')
+
+    # attack = 'pixel'
+    # attack_all(attack, img_path='./melanoma/', results_path='./difev/',
+    #            fig_path='./difev/' + attack + '/')
+    # attack = 'color'
+    # attack_all(attack, img_path='./melanoma/', results_path='./difev/',
+    #            fig_path='./difev/' + attack + '_colour_jitter/')
+    # attack = 'rotation'
+    # attack_all(attack, img_path='./melanoma/', results_path='./difev/',
+    #            fig_path='./difev/' + attack + '/')
