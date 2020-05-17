@@ -295,6 +295,9 @@ def run():
 
         for f in f_:
             print("  R/O %s" % f[1])
+            if f == "Wart":
+                correct += 1
+
         print("Model's Output : ")
         for i, p_ in enumerate(final_[1]):
             for j, dx_ in enumerate(main_dx):
@@ -306,8 +309,7 @@ def run():
         final_diagnosis = get_max_diagnosis(diagnosis)
         all_results.append(final_diagnosis)
         print(final_diagnosis)
-        if final_diagnosis[1] == "Wart":
-            correct += 1
+
 
 
     print("Correct ratio : %.1f (%d / %d)" % (correct / countall * 100, correct, countall))
