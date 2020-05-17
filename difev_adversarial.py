@@ -173,6 +173,8 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
 
     # load image to perturb
     difev_vars.image, difev_vars.trans_image = load_image(img_path + filename)
+
+    # Load model
     X = difev_vars.model(difev_vars.trans_image)
     difev_vars.prob_orig = softmax(X.data.numpy()[0])
     difev_vars.pred_orig = np.argmax(difev_vars.prob_orig)
