@@ -246,7 +246,7 @@ def attack_all_caffe(attack, img_path, results_path, fig_path):
 
     import caffe
     from caffe.proto import caffe_pb2
-    from . import test
+    import test
 
     test.run()
 
