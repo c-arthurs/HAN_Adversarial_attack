@@ -200,20 +200,24 @@ def run():
     # print("GPU - ", gpu_device)
 
     # test_path   path1;path2;path3
-    if (len(sys.argv) > 1): test_path_list = str(sys.argv[1]).split(';')
-    # train_dataset asan90;asan10
-    if (len(sys.argv) > 2): train_dataset = str(sys.argv[2])
-    # train_type 0:resnet
+    test_path_list = "/hdd1/Callum/CAFFE/test-asan test/biopsy/pyogenicgranuloma"
+    train_dataset = "asan"
     train_type = 0
-    if (len(sys.argv) > 3): train_type = int(sys.argv[3])
     exp_num = 0
-    if (len(sys.argv) > 4): exp_num = int(sys.argv[4])
+    # if (len(sys.argv) > 1): test_path_list = str(sys.argv[1]).split(';')
+    # train_dataset asan90;asan10
+    # if (len(sys.argv) > 2): train_dataset = str(sys.argv[2])
+    # train_type 0:resnet
+    # train_type = 0
+    # if (len(sys.argv) > 3): train_type = int(sys.argv[3])
+    # exp_num = 0
+    # if (len(sys.argv) > 4): exp_num = int(sys.argv[4])
 
     # list_dx
 
     for test_path in test_path_list:
         if (os.path.exists(test_path) == False):
-            print(test_path + ' is not exist')
+            print(test_path + ' does not exist')
             sys.exit(0)
         print("Test Path : ", test_path)
 
