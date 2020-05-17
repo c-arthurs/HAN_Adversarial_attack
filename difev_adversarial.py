@@ -2,6 +2,9 @@
 Various attack methods against inception v3 using differential evolution
 Based on: https://github.com/sarathknv/adversarial-examples-pytorch
 """
+import os
+import sys
+
 import torch
 from torchvision import datasets, transforms
 import numpy as np
@@ -227,6 +230,21 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
         return 'failed'
 
 
+def test_paths(test_path_list):
+    test_img_paths = []
+    for test_path in test_path_list:
+        for root, dirs, files in os.walk(test_path):
+            for fname in files:
+                ext = (os.path.splitext(fname)[-1]).lower()
+                if ext == ".jpg" or ext == ".jpeg" or ext == ".gif" or ext == ".png": test_img_paths += [
+                    os.path.join(root, fname)]
+
+        if (len(test_img_paths) == 0):
+            print("No image (.jpg .gif .png) exist at " + test_path)
+            sys.exit(0)
+    return test_img_paths
+
+
 def attack_all_caffe(attack, img_path, results_path, fig_path):
     """
     Run attacks on all images in the validation set
@@ -248,7 +266,18 @@ def attack_all_caffe(attack, img_path, results_path, fig_path):
     from caffe.proto import caffe_pb2
     import test
 
-    test.run()
+    caffe.set_mode_cpu()
+    test_path_list = ["/hdd1/Callum/CAFFE/test-asan test/biopsy/pyogenicgranuloma"]
+    train_dataset = "asan"
+    train_type = 0
+    exp_num = 0
+
+    test_img_paths = test_paths(test_path_list)
+
+
+
+    model_path, name_caffemodel, deployname, test_img_paths = test.loadmodel(train_dataset, train_type, exp_num,
+                                                                             test_img_paths)
 
 
 
