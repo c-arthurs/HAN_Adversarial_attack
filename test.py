@@ -242,11 +242,6 @@ def run():
 
     model_path, name_caffemodel, deployname, test_img_paths = loadmodel(train_dataset, train_type, exp_num, test_img_paths)
 
-
-
-
-
-
     modelnail = loadcaffemodel(model_path, name_caffemodel, deployname, test_img_paths)
 
 

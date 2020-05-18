@@ -14,10 +14,14 @@ import pickle
 from PIL import Image
 import PIL
 
-is_cuda = torch.cuda.is_available()
-assert is_cuda
-device = torch.device("cuda:0")
+import os
+import sys
+import caffe
+from caffe.proto import caffe_pb2
+import numpy as np
+import cv2
 
+is_cuda = classify.is_cuda
 # Global variables - do not change during runtime
 iters = 600
 popsize = 20
@@ -47,37 +51,147 @@ class DifevVars:
 difev_vars = DifevVars()
 
 
+class PytorchModel:
+    """
+    Class to abstract loading and running of the pytorch model
+    All Pytorch-specific code in this class
+    """
+
+    def __init__(self):
+        self.model, _ = classify.initialize_model('inception', num_classes=2, feature_extract=False,
+                                                  use_pretrained=False, load=True)
+
+        if is_cuda: self.model.cuda()
+        self.model.eval()
+        self.loader1 = transforms.Compose([
+            transforms.Resize(input_size),
+            transforms.CenterCrop(input_size),
+        ])
+
+        self.loader2 = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
+
+    def resize_center(self, image):
+        """
+        input PIL image
+        output PIL image
+        """
+        return self.loader1(image)
+
+    def normalize_totensor(self, image):
+        """
+        Input PIL image
+        output cuda tensor
+        """
+        x = self.loader2(image)
+        x = x.repeat(1, 1, 1, 1)
+        if is_cuda: x = x.cuda()
+        return x
+
+    def load_image(self, filename):
+        # Load the image that we modify
+        image = Image.open(filename)
+        image = self.resize_center(image)
+        # trans_image = self.normalize_totensor(image)
+        # trans_image = trans_image.repeat(1, 1, 1, 1)
+        # assert is_cuda
+        # if is_cuda:
+        #    trans_image = trans_image.cuda()
+        # return image, trans_image
+        return image
+
+    def run(self, image):
+        return self.model(image)
+
+
+class CaffeModel:
+    """
+    Class to abstract loading and running of the pytorch model
+    All Pytorch-specific code in this class
+    """
+
+    def __init__(self):
+        # load the model
+        model_path = "asan"
+        name_caffemodel = "59024"
+        deployname = 'deploy.prototxt'
+        self.net = self.loadcaffemodel(model_path, name_caffemodel, deployname)
+
+
+    def loadcaffemodel(self, modelbasepath, modelname, deployname):
+        mean_blob = caffe_pb2.BlobProto()
+        with open(os.path.join(modelbasepath, 'mean224x224.binaryproto'), 'rb') as f:
+            mean_blob.ParseFromString(f.read())
+        mean_array = np.asarray(mean_blob.data, dtype=np.float32).reshape(
+            (mean_blob.channels, mean_blob.height, mean_blob.width))
+        # Read model architecture and trained model's weights
+        print(os.path.join(modelbasepath, deployname), os.path.join(modelbasepath, modelname + '.caffemodel'))
+        net = caffe.Net(os.path.join(modelbasepath, deployname), os.path.join(modelbasepath, modelname + '.caffemodel'),
+                        caffe.TEST)
+
+        # Define image transformers
+        transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
+        transformer.set_mean('data', mean_array)
+        transformer.set_transpose('data', (2, 0, 1))
+        return net
+
+    def transform_img(self, img, img_width=224, img_height=224):
+        # Histogram Equalization
+        img[:, :, 0] = cv2.equalizeHist(img[:, :, 0])
+        img[:, :, 1] = cv2.equalizeHist(img[:, :, 1])
+        img[:, :, 2] = cv2.equalizeHist(img[:, :, 2])
+        # Image Resizing
+        img = cv2.resize(img, (img_width, img_height), interpolation=cv2.INTER_CUBIC)
+        return img
+
+    def load_image(self, filename):
+        image = cv2.imread(filename, cv2.IMREAD_COLOR)
+        image = self.transform_img(image)
+        return image
+
+    def run(self, image):
+        transformer = caffe.io.Transformer({'data': self.net.blobs['data'].data.shape})
+        # transformer.set_mean('data', mean_array)
+        transformer.set_transpose('data', (2, 0, 1))
+        self.net.blobs['data'].data[...] = transformer.preprocess('data', image)
+        out = self.net.forward()
+        print(out)
+        pass
+
+
 def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / e_x.sum()
 
 
-loader1 = transforms.Compose([
-    transforms.Resize(input_size),
-    transforms.CenterCrop(input_size),
-])
-
-loader2 = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-])
-
-
-def load_image(filename):
-    # Load the image that we modify
-    image = Image.open(filename)
-    image = loader1(image)
-    trans_image = loader2(image)
-    trans_image = trans_image.repeat(1, 1, 1, 1).cuda()
-    return image, trans_image
+# resize_center = transforms.Compose([
+#    transforms.Resize(input_size),
+#    transforms.CenterCrop(input_size),
+# ])
+#
+# normalize_totensor = transforms.Compose([
+#    transforms.ToTensor(),
+#    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+# ])
+#
+#
+# def load_image(filename):
+#    # Load the image that we modify
+#    image = Image.open(filename)
+#    image = resize_center(image)
+#    trans_image = normalize_totensor(image)
+#    trans_image = trans_image.repeat(1, 1, 1, 1).cuda()
+#    return image, trans_image
 
 
 def optimize(x):
     global difev_vars
     adv_image = difev_vars.perturb_fn(x)
-    trans_adv_image = loader2(adv_image).repeat(1, 1, 1, 1)
-    out = difev_vars.model(trans_adv_image)
-    prob = softmax(out.data.numpy()[0])
+    trans_adv_image = difev_vars.model.normalize_totensor(adv_image).repeat(1, 1, 1, 1)
+    out = difev_vars.model.run(trans_adv_image)
+    prob = softmax(out.data.cpu().numpy()[0])
 
     return prob[difev_vars.pred_orig]
 
@@ -85,10 +199,10 @@ def optimize(x):
 def callback(x, convergence):
     global difev_vars
     difev_vars.adv_image = difev_vars.perturb_fn(x)
-    difev_vars.trans_adv_image = loader2(difev_vars.adv_image).repeat(1, 1, 1, 1)
+    difev_vars.trans_adv_image = difev_vars.model.normalize_totensor(difev_vars.adv_image)
     # inp = Variable(torch.from_numpy(preprocess(adv_img)).float().unsqueeze(0))
-    out = difev_vars.model(difev_vars.trans_adv_image)
-    difev_vars.prob_adv = softmax(out.data.numpy()[0])
+    out = difev_vars.model.run(difev_vars.trans_adv_image)
+    difev_vars.prob_adv = softmax(out.data.cpu().numpy()[0])
     difev_vars.pred_adv = np.argmax(difev_vars.prob_adv)
     p = difev_vars.prob_adv[difev_vars.pred_adv]
     difev_vars.stage += 1
@@ -167,7 +281,6 @@ class RotationTranslationAttack:
         return adv_image
 
 
-
 def run_attack(attack, img_path, filename, target, fig_path, save=True):
     global difev_vars
     assert difev_vars.model is not None
@@ -175,12 +288,13 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
     difev_vars.stage = 0
     difev_vars.perturb_fn = attack.perturb
 
+    difev_vars.model = PytorchModel()
     # load image to perturb
-    difev_vars.image, difev_vars.trans_image = load_image(img_path + filename)
-
+    difev_vars.image = difev_vars.model.load_image(img_path + filename)
+    difev_vars.trans_image = difev_vars.model.normalize_totensor(difev_vars.image)
     # Load model
-    X = difev_vars.model(difev_vars.trans_image)
-    difev_vars.prob_orig = softmax(X.data.numpy()[0])
+    X = difev_vars.model.run(difev_vars.trans_image)
+    difev_vars.prob_orig = softmax(X.data.cpu().numpy()[0])
     difev_vars.pred_orig = np.argmax(difev_vars.prob_orig)
     print('Prediction before attack: %s' % (class_names[difev_vars.pred_orig]))
     print('Probability: %f' % (difev_vars.prob_orig[difev_vars.pred_orig]))
@@ -194,12 +308,12 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
         result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
-                                        callback=callback, workers=5)
+                                        callback=callback, workers=1)
         # result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
         # callback=callback)
     adv_image = difev_vars.perturb_fn(result.x)
-    trans_adv_image = loader2(adv_image).repeat(1, 1, 1, 1)
-    out = difev_vars.model(trans_adv_image)
+    trans_adv_image = difev_vars.model.normalize_totensor(adv_image).repeat(1, 1, 1, 1)
+    out = difev_vars.model.run(trans_adv_image)
     prob = softmax(out.data.numpy()[0])
 
     a = class_names[difev_vars.pred_orig]
@@ -245,56 +359,6 @@ def test_paths(test_path_list):
     return test_img_paths
 
 
-def attack_all_caffe(attack, img_path, results_path, fig_path):
-    """
-    Run attacks on all images in the validation set
-    """
-    import os
-    from shutil import copyfile
-
-    if attack == 'pixel':
-        attack = PixelAttack()
-    elif attack == 'color':
-        attack = ColorAttack()
-    elif attack == 'rotation':
-        attack = RotationTranslationAttack()
-    attack.d = 3
-    target = 'nevus'
-    # load model to attack
-
-    import caffe
-    from caffe.proto import caffe_pb2
-    import test
-
-    caffe.set_mode_cpu()
-    test_path_list = ["/hdd1/Callum/CAFFE/test-asan test/biopsy/pyogenicgranuloma"]
-    train_dataset = "asan"
-    train_type = 0
-    exp_num = 0
-
-    test_img_paths = test_paths(test_path_list)
-
-
-
-    model_path, name_caffemodel, deployname, test_img_paths = test.loadmodel(train_dataset, train_type, exp_num,
-                                                                             test_img_paths)
-
-
-
-
-
-
-    # difev_vars.model, _ = classify.initialize_model('inception', num_classes=2, feature_extract=False,
-    #                                                 use_pretrained=False, load=True)
-
-
-
-
-
-
-
-
-
 def attack_all(attack, img_path, results_path, fig_path):
     """
     Run attacks on all images in the validation set
@@ -312,12 +376,10 @@ def attack_all(attack, img_path, results_path, fig_path):
     target = 'nevus'
     # load model to attack
 
-
     difev_vars.model, _ = classify.initialize_model('inception', num_classes=2, feature_extract=False,
                                                     use_pretrained=False, load=True)
 
-
-    difev_vars.model.cuda()
+    if is_cuda: difev_vars.model.cuda()
     difev_vars.model.eval()
     results = {}
     if os.path.exists(results_path + os.sep + 'results.pkl'):
@@ -390,18 +452,42 @@ def plot_results():
     pl.savefig('/data/figs/lesions-adversarial/difev/' + select + '.eps')
     pl.show()
 
+def attack_caffe(attack, img_path, results_path, fig_path):
+   """
+   Run attacks on all images in the validation set
+   """
+   import os
+   from shutil import copyfile
+
+   if attack == 'pixel':
+       attack = PixelAttack()
+   elif attack == 'color':
+       attack = ColorAttack()
+   elif attack == 'rotation':
+       attack = RotationTranslationAttack()
+   attack.d = 3
+   target = 'nevus'
+   # load model to attack
+
+   caffe.set_mode_cpu()
+
+
+
+
 
 if __name__ == "__main__":
     attack = 'pixel'
-    attack_all_caffe(attack, img_path='./melanoma/', results_path='./difev/',
-                     fig_path='./difev/' + attack + '/')
+    attack_all(attack, img_path='./melanoma/', results_path='./difev/', fig_path='./difev/' + attack + '/')
 
-    # attack = 'pixel'
-    # attack_all(attack, img_path='./melanoma/', results_path='./difev/',
-    #            fig_path='./difev/' + attack + '/')
-    # attack = 'color'
-    # attack_all(attack, img_path='./melanoma/', results_path='./difev/',
-    #            fig_path='./difev/' + attack + '_colour_jitter/')
-    # attack = 'rotation'
-    # attack_all(attack, img_path='./melanoma/', results_path='./difev/',
-    #            fig_path='./difev/' + attack + '/')
+#    attack_all_caffe(attack, img_path='./melanoma/', results_path='./difev/',
+#                     fig_path='./difev/' + attack + '/')
+
+# attack = 'pixel'
+# attack_all(attack, img_path='./melanoma/', results_path='./difev/',
+#            fig_path='./difev/' + attack + '/')
+# attack = 'color'
+# attack_all(attack, img_path='./melanoma/', results_path='./difev/',
+#            fig_path='./difev/' + attack + '_colour_jitter/')
+# attack = 'rotation'
+# attack_all(attack, img_path='./melanoma/', results_path='./difev/',
+#            fig_path='./difev/' + attack + '/')
