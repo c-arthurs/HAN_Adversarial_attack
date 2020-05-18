@@ -454,7 +454,7 @@ def plot_results():
 
 def run_attack_caffe(attack, img_path, filename, target, fig_path, save=True):
     global difev_vars
-    assert difev_vars.model is not None
+    # assert difev_vars.model is not None
     assert target in class_names
     difev_vars.stage = 0
     difev_vars.perturb_fn = attack.perturb
