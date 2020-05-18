@@ -378,7 +378,6 @@ def attack_all(attack, img_path, results_path, fig_path):
 
     difev_vars.model, _ = classify.initialize_model('inception', num_classes=2, feature_extract=False,
                                                     use_pretrained=False, load=True)
-
     if is_cuda: difev_vars.model.cuda()
     difev_vars.model.eval()
     results = {}
@@ -452,6 +451,73 @@ def plot_results():
     pl.savefig('/data/figs/lesions-adversarial/difev/' + select + '.eps')
     pl.show()
 
+
+def run_attack_caffe(attack, img_path, filename, target, fig_path, save=True):
+    global difev_vars
+    assert difev_vars.model is not None
+    assert target in class_names
+    difev_vars.stage = 0
+    difev_vars.perturb_fn = attack.perturb
+
+    difev_vars.model = CaffeModel()
+    # load image to perturb
+    difev_vars.image = difev_vars.model.load_image(img_path + filename)
+    # difev_vars.trans_image = difev_vars.model.normalize_totensor(difev_vars.image)
+    # Load model
+    X = difev_vars.model.run(difev_vars.image)  # changed from trans_image
+
+    print("going well...")
+
+    difev_vars.prob_orig = softmax(X.data.cpu().numpy()[0])
+    difev_vars.pred_orig = np.argmax(difev_vars.prob_orig)
+    print('Prediction before attack: %s' % (class_names[difev_vars.pred_orig]))
+    print('Probability: %f' % (difev_vars.prob_orig[difev_vars.pred_orig]))
+
+    if class_names[difev_vars.pred_orig] == target:
+        print('Matches target before attack')
+        return 'incorrect class'
+
+    # Run the differential evolution attack
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning)
+        result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
+                                        callback=callback, workers=1)
+        # result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
+        # callback=callback)
+    adv_image = difev_vars.perturb_fn(result.x)
+    trans_adv_image = difev_vars.model.normalize_totensor(adv_image).repeat(1, 1, 1, 1)
+    out = difev_vars.model.run(trans_adv_image)
+    prob = softmax(out.data.numpy()[0])
+
+    a = class_names[difev_vars.pred_orig]
+    b = class_names[difev_vars.pred_adv]
+
+    if a != b:
+        print('Successful attack')
+        print('Prob [%s]: %f --> Prob[%s]: %f' % (class_names[difev_vars.pred_orig],
+                                                  difev_vars.prob_orig[difev_vars.pred_orig],
+                                                  class_names[difev_vars.pred_adv],
+                                                  difev_vars.prob_adv[difev_vars.pred_adv]))
+        base_name = filename.split('.')[0]
+        name_image = fig_path + base_name + '_orig_%.3f' % (difev_vars.prob_orig[difev_vars.pred_orig]) + '.jpg'
+        name_adv = fig_path + base_name + '_adv_%.3f' % (difev_vars.prob_adv[difev_vars.pred_adv]) + '.jpg'
+        adv_image.save(name_adv, 'jpeg')
+        difev_vars.image.save(name_image, 'jpeg')
+        if attack.name == 'pixel':
+            name_diff = fig_path + base_name + '_diff' + '.jpg'
+            diff = PIL.ImageChops.difference(adv_image, difev_vars.image)
+            diff.save(name_diff)
+
+        # difev_vars.image.show()
+        # adv_image.show()
+        return 'success'
+
+    else:
+        print('Attack failed')
+        return 'failed'
+
+
 def attack_caffe(attack, img_path, results_path, fig_path):
    """
    Run attacks on all images in the validation set
@@ -468,19 +534,34 @@ def attack_caffe(attack, img_path, results_path, fig_path):
    attack.d = 3
    target = 'nevus'
    # load model to attack
-
    caffe.set_mode_cpu()
 
+   difev_vars.model.eval()
+   results = {}
+   if os.path.exists(results_path + os.sep + 'results.pkl'):
+       results = pickle.load(open(results_path + 'results.pkl', 'rb'))
 
+   for filename in os.listdir(img_path):
+       print(img_path + filename)
+       assert (os.path.exists(img_path + filename))
+       if filename + os.sep + attack.name in results:
+           print('skipping')
+           continue
+       outcome = run_attack_caffe(attack, img_path, filename, target, fig_path=fig_path, save=False)
+       # p_best = difev_vars.prob_adv[class_names.index(target)]
+       results[filename + os.sep + attack.name] = {'outcome': outcome,
+                                                   'orig': difev_vars.prob_orig[difev_vars.pred_orig]}
+       # 'adv': p_best}
+       if os.path.exists(results_path + 'results.pkl'):
+           copyfile(results_path + 'results.pkl', results_path + 'results.old')
+       pickle.dump(results, open(results_path + 'results.pkl', 'wb'))
 
 
 
 if __name__ == "__main__":
     attack = 'pixel'
-    attack_all(attack, img_path='./melanoma/', results_path='./difev/', fig_path='./difev/' + attack + '/')
+    attack_caffe(attack, img_path='./melanoma/', results_path='./difev/', fig_path='./difev/' + attack + '/')
 
-#    attack_all_caffe(attack, img_path='./melanoma/', results_path='./difev/',
-#                     fig_path='./difev/' + attack + '/')
 
 # attack = 'pixel'
 # attack_all(attack, img_path='./melanoma/', results_path='./difev/',
