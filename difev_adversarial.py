@@ -536,7 +536,7 @@ def attack_caffe(attack, img_path, results_path, fig_path):
    # load model to attack
    caffe.set_mode_cpu()
 
-   difev_vars.model.eval()
+   # difev_vars.model.eval()
    results = {}
    if os.path.exists(results_path + os.sep + 'results.pkl'):
        results = pickle.load(open(results_path + 'results.pkl', 'rb'))
