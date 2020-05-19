@@ -118,6 +118,90 @@ class CaffeModel:
         name_caffemodel = "59024"
         deployname = 'deploy.prototxt'
         self.net = self.loadcaffemodel(model_path, name_caffemodel, deployname)
+        self.list_alias = []
+        self.list_dx = ['abnom', 'abscess', 'acanthosisnigricans', 'acne', 'acneiformeruption', 'acnescar',
+                   'acrallentiginousnevus',
+                   'actiniccheilitis', 'actinickeratosis', 'acutegeneralizedexanthematouspustulosis', 'acutegvhd',
+                   'adultonsetstillsdisease', 'allergiccontactdermatitis', 'allergicvasculitis', 'alopecia',
+                   'alopeciaareata',
+                   'amyloidosis', 'androgenicalopecia', 'angioedema', 'angiofibroma', 'angiokeratoma', 'angiolipoma',
+                   'ashydermatitis', 'ashydermatosis', 'atopicdermatitis', 'atypicalmycobacterialinfection',
+                   'basalcellcarcinoma', 'basalcellcarcinoma_postop', 'beckernevus', 'behcetdisease', 'bluenevus',
+                   'bowendisease', 'bowenoidpapulosis', 'bullousdisease', 'bullousdrugeruption', 'bullouspemphigoid',
+                   'burn',
+                   'burnscar', 'cafeaulaitmacule', 'calcinosiscutis', 'callus', 'cellulitis',
+                   'cetuximabinducedacneiformeruption', 'cheilitis', 'chickenpox', 'cholinergicurticaria',
+                   'chroniceczema',
+                   'chronicgvhd', 'chronicurticaria', 'coldinducedurticaria', 'condyloma',
+                   'confluentreticulatedpapillomatosis',
+                   'congenitalnevus', 'connectivetissuedisease', 'contactcheilitis', 'contactdermatitis',
+                   'cutaneoushorn',
+                   'cyst', 'darkcircle', 'depressedscar', 'dermatitisherpetiformis', 'dermatofibroma',
+                   'dermatomyositis',
+                   'dilatedpore', 'dirtyneck', 'dohimelanosis', 'drugeruption', 'dyshidroticeczema', 'dysplasticnevus',
+                   'eczema', 'eczemaherpeticum', 'epidermalcyst', 'epidermalnevus', 'eruptivesyringoma',
+                   'erythemaabigne',
+                   'erythemaannularecentrifugum', 'erythemamultiforme', 'erythemanodosum', 'exfoliativedermatitis',
+                   'extramammarypagetdisease', 'fibroma', 'fixeddrugeruption', 'folliculitis', 'fordycespot',
+                   'foreignbodygranuloma', 'foreignbodyreaction', 'freckle', 'fungalinfection', 'furuncle',
+                   'glomustumor',
+                   'graftversushostdisease', 'granuloma', 'granulomaannulare', 'guttatepsoriasis', 'handeczema',
+                   'hemangioma',
+                   'hematoma', 'henochschonleinpurpura', 'herpessimplex', 'herpeszoster', 'hyperpigmentation',
+                   'hypersensitivityvasculitis', 'hypertrophicscar', 'hypopigmentation',
+                   'idiopathicguttatehypomelanosis',
+                   'idreaction', 'impetigo', 'inflammedcyst', 'ingrowingnail', 'insectbite', 'intradermalnevus',
+                   'irritantcontactdermatitis', 'irritatedlentigo', 'irritatedseborrheickeratosis',
+                   'juvenilexanthogranuloma',
+                   'kaposisarcoma', 'keloid', 'keratoacanthoma', 'keratoderma', 'keratosispilaris',
+                   'langerhanscellhistiocytosis', 'lasertoning', 'lentigo', 'leukemiacutis',
+                   'leukocytoclasticvasculitis',
+                   'lichenamyloidosis', 'lichennitidus', 'lichenoiddrugeruption', 'lichenplanus',
+                   'lichensimplexchronicus',
+                   'lichenstriatus', 'lipoma', 'lipomatosis', 'livedoidvasculitis', 'livedoreticularis', 'lmdf',
+                   'lupuserythematosus', 'lymphangioma', 'lymphoma', 'lymphomatoidpapulosis', 'malignantmelanoma',
+                   'mastocytoma', 'mastocytosis', 'melanocyticnevus', 'melanonychia', 'melasma', 'metastasis', 'milia',
+                   'milium', 'molluscumcontagiosum', 'morphea', 'mucocele', 'mucosalmelanoticmacule', 'mucouscyst',
+                   'mycosisfungoides', 'naildystrophy', 'neurofibroma', 'neurofibromatosis', 'nevus_postop',
+                   'nevusdepigmentosus', 'nevussebaceus', 'nevusspilus', 'nippleeczema', 'normalnail', 'ntminfection',
+                   'nummulareczema', 'onycholysis', 'onychomycosis', 'organoidnevus', 'otanevus', 'otherdermatitis',
+                   'pagetsdisease', 'palmoplantarpustulosis', 'panniculitis', 'papularurticaria', 'parapsoriasis',
+                   'paronychia',
+                   'pemphigusfoliaceus', 'pemphigusvulgaris', 'perioraldermatitis', 'photosensitivedermatitis',
+                   'pigmentedcontactdermatitis', 'pigmentednevus', 'pigmentedprogressivepurpuricdermatosis',
+                   'pilarcyst',
+                   'pilomatricoma', 'pityriasisalba', 'pityriasislichenoideschronica',
+                   'pityriasislichenoidesetvarioliformisacuta', 'pityriasisrosea', 'pityriasisrubrapilaris',
+                   'poikiloderma',
+                   'pompholyx', 'porokeratosis', 'poroma', 'portwinestain', 'postinflammatoryhyperpigmentation',
+                   'prurigonodularis', 'prurigopigmentosa', 'pruritus', 'pseudolymphoma', 'psoriasis', 'puppp',
+                   'purpura',
+                   'pustularpsoriasis', 'pyodermagangrenosum', 'pyogenicgranuloma', 'rhielmelanosis', 'rosacea',
+                   'rupturedcyst',
+                   'sarcoidosis', 'scabies', 'scar', 'scar_postlaser', 'scar_postop', 'scc_postop', 'scleroderma',
+                   'sebaceoushyperplasia', 'seborrheicdermatitis', 'seborrheickeratosis', 'skintag', 'softfibroma',
+                   'squamouscellcarcinoma', 'staphylococcalscaldedskinsyndrome', 'stasisdermatitis',
+                   'steatocystomamultiplex',
+                   'steroidrosacea', 'striaedistensae', 'subcutaneousnodule', 'subungalhematoma', 'sweetsyndrome',
+                   'syringoma',
+                   'systemiccontactdermatitis', 'systemiclupuserythematosus', 'tattoo', 'telangiectasia',
+                   'tineacorporis',
+                   'tineafaciale', 'tineapedis', 'toxicepidermalnecrolysis', 'traumaticfatnecrosis', 'traumatictattoo',
+                   'ulcer',
+                   'urticaria', 'urticarialvasculitis', 'urticariapigmentosa', 'varicella', 'vascularmalformation',
+                   'vasculitis', 'venouslake', 'venousmalformation', 'verrucaplana', 'viralexanthem', 'vitiligo',
+                   'wart',
+                   'wrinkle', 'xanthelasma', 'xanthogranuloma', 'xanthoma', 'xeroticeczema']
+
+        self.main_dx2 = ['Malignant melanoma', 'Basal cell carcinoma', 'Squamous cell carcinoma',
+                    'Intraepithelial carcinoma',
+                    'Pyogenic granuloma', 'Seborrheic keratosis', 'Melanocytic nevus', 'Actinic keratosis',
+                    'Dermatofibroma',
+                    'Hemangioma', 'Wart', 'Lentigo']
+        self.main_dx = ['malignantmelanoma', 'basalcellcarcinoma', 'squamouscellcarcinoma', 'bowendisease',
+                   'pyogenicgranuloma',
+                   'seborrheickeratosis', 'pigmentednevus', 'actinickeratosis', 'dermatofibroma', 'hemangioma', 'wart',
+                   'lentigo']
 
 
     def loadcaffemodel(self, modelbasepath, modelname, deployname):
@@ -151,12 +235,107 @@ class CaffeModel:
         image = self.transform_img(image)
         return image
 
+    def get_max_diagnosis(self, diagnosis):
+        """
+        get the max diagnosis value from a list of names
+        :param diagnosis: list [fname, [disease, number], [disease, number],...]
+        :return: the max diagnosis and name - ['Wart', 0.9997361302375793]
+        """
+        ints = [d[1] for d in diagnosis[1:]]
+        idx = ints.index(max(ints))  # get index of max value
+        final = diagnosis[idx + 1]  # added the plus one to account for name at idx 0
+        final.insert(0, os.path.split(diagnosis[0])[1])
+        return final
+
+    def getname(self, i):
+        for j, dx_ in enumerate(self.main_dx):
+            if dx_ == self.list_dx[i]: return self.main_dx2[j]
+        return ""
+
+    def get_basenames(self, img_path):
+        basenames = []
+        dirname = os.path.dirname(img_path)
+        for alias_ in self.list_alias:
+            dirname = dirname.replace(alias_[0], alias_[1])
+        olddir = ''
+        while dirname != '' and dirname != '/' and olddir != dirname:
+            if ('lesion_' not in os.path.basename(dirname)):
+                basenames += [os.path.basename(dirname)]
+            olddir = dirname
+            dirname = os.path.dirname(dirname)
+        return basenames
+
+    def get_final_results(self, out):
+        threshold = [726, 39, 172, 429, 166, 9, 227, 18, 14, 30, 1107, 305]
+        final_result = []
+        model_result = []
+        result = []
+        pred_probas = out['prob']
+        result += [(img_path, pred_probas[0].tolist())]
+        for modelnail_ in result:
+            if (modelnail_[0] == img_path):
+                model_result = modelnail_[1]
+                # print("result - ", model_result)
+
+        # get right index from folder name
+        right_dx_index = -1
+        right_dx_name = ''
+        for i, dx_ in enumerate(self.main_dx2):
+            if dx_ in self.get_basenames(img_path):
+                right_dx_name = self.main_dx[i]
+                for j, dx2_ in enumerate(self.list_dx):
+                    if dx2_ == right_dx_name:
+                        right_dx_index = j
+        final_result += [(img_path, model_result, right_dx_index)]
+        results = []
+        countall = 0.0
+        correct = 0.0
+        all_results = []
+
+        for final_ in final_result:
+            countall += 1
+            diagnosis = [final_[0]]
+            f_ = []
+            for i, p_ in enumerate(final_[1]):
+                thres_ = 10000
+                for j, dx_ in enumerate(self.main_dx):
+                    if (dx_ == self.list_dx[i]):
+                        thres_ = threshold[j]
+                if (p_ * 10000 > thres_):
+                    f_ += [(p_, self.getname(i))]
+                    if i == final_[2]: correct += 1
+            f_ = sorted(f_, reverse=True)
+
+            for f in f_:
+                if f[1] == "Melanocytic nevus":
+                    correct += 1
+            for i, p_ in enumerate(final_[1]):
+                for j, dx_ in enumerate(self.main_dx):
+                    if (dx_ == self.list_dx[i]):
+                        diagnosis.append([self.getname(i), p_])
+                        results.append((self.getname(i), p_, final_[0]))
+
+            final_diagnosis = self.get_max_diagnosis(diagnosis)
+            all_results.append(final_diagnosis)
+            diagnosis = final_diagnosis[1]
+            confidence = final_diagnosis[2]
+            print(diagnosis, confidence)
+            return diagnosis, confidence
+
+        
+
+
+
     def run(self, image):
         transformer = caffe.io.Transformer({'data': self.net.blobs['data'].data.shape})
         # transformer.set_mean('data', mean_array)
         transformer.set_transpose('data', (2, 0, 1))
         self.net.blobs['data'].data[...] = transformer.preprocess('data', image)
         out = self.net.forward()
+        self.get_final_results(out)
+
+
+
         print(out)
         pass
 
@@ -468,8 +647,8 @@ def run_attack_caffe(attack, img_path, filename, target, fig_path, save=True):
 
     print("going well...")
 
-    difev_vars.prob_orig = softmax(X.data.cpu().numpy()[0])
-    difev_vars.pred_orig = np.argmax(difev_vars.prob_orig)
+    difev_vars.prob_orig =
+    difev_vars.pred_orig =
     print('Prediction before attack: %s' % (class_names[difev_vars.pred_orig]))
     print('Probability: %f' % (difev_vars.prob_orig[difev_vars.pred_orig]))
 
