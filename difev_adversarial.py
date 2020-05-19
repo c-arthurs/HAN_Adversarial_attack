@@ -321,7 +321,7 @@ class CaffeModel:
             all_results.append(final_diagnosis)
             diagnosis = final_diagnosis[1]
             confidence = final_diagnosis[2]
-            # print(diagnosis, confidence)
+            print(diagnosis, confidence)
             return diagnosis, confidence
 
     def run(self, image):
