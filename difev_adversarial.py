@@ -643,8 +643,8 @@ def run_attack_caffe(attack, img_path, filename, target, fig_path, save=True):
 
     print("going well...")
 
-    difev_vars.prob_orig =
-    difev_vars.pred_orig =
+    # difev_vars.prob_orig =
+    # difev_vars.pred_orig =
     print('Prediction before attack: %s' % (class_names[difev_vars.pred_orig]))
     print('Probability: %f' % (difev_vars.prob_orig[difev_vars.pred_orig]))
 
