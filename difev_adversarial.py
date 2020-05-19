@@ -266,7 +266,9 @@ class CaffeModel:
         return basenames
 
     def get_final_results(self, out):
+        img_path = "" #  temp
         threshold = [726, 39, 172, 429, 166, 9, 227, 18, 14, 30, 1107, 305]
+
         final_result = []
         model_result = []
         result = []
@@ -319,12 +321,8 @@ class CaffeModel:
             all_results.append(final_diagnosis)
             diagnosis = final_diagnosis[1]
             confidence = final_diagnosis[2]
-            print(diagnosis, confidence)
+            # print(diagnosis, confidence)
             return diagnosis, confidence
-
-        
-
-
 
     def run(self, image):
         transformer = caffe.io.Transformer({'data': self.net.blobs['data'].data.shape})
@@ -333,8 +331,6 @@ class CaffeModel:
         self.net.blobs['data'].data[...] = transformer.preprocess('data', image)
         out = self.net.forward()
         self.get_final_results(out)
-
-
 
         print(out)
         pass
