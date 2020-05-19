@@ -330,10 +330,7 @@ class CaffeModel:
         transformer.set_transpose('data', (2, 0, 1))
         self.net.blobs['data'].data[...] = transformer.preprocess('data', image)
         out = self.net.forward()
-        self.get_final_results(out)
-
-        print(out)
-        pass
+        return self.get_final_results(out)
 
 
 def softmax(x):
@@ -643,8 +640,8 @@ def run_attack_caffe(attack, img_path, filename, target, fig_path, save=True):
 
     print("going well...")
 
-    # difev_vars.prob_orig =
-    # difev_vars.pred_orig =
+    difev_vars.prob_orig = X[1]
+    difev_vars.pred_orig = X[0]
     print('Prediction before attack: %s' % (class_names[difev_vars.pred_orig]))
     print('Probability: %f' % (difev_vars.prob_orig[difev_vars.pred_orig]))
 
