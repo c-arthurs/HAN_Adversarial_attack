@@ -659,7 +659,7 @@ def run_attack_caffe(attack, img_path, filename, target, fig_path, save=True):
         # result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
         # callback=callback)
     adv_image = difev_vars.perturb_fn(result.x)
-    trans_adv_image = adv_image ### difev_vars.model.normalize_totensor(adv_image).repeat(1, 1, 1, 1)
+    trans_adv_image = adv_image.repeat(1, 1, 1, 1)
     out = difev_vars.model.run(trans_adv_image)
     prob = softmax(out.data.numpy()[0])
 
