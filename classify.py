@@ -212,7 +212,9 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
         exit()
 
     if load:
+
         filename = model_dir + model_name + '.pth'
+        print(filename)
         # assert os.path.exists(filename)
         print('loading model', filename)
         model_ft.load_state_dict(torch.load(filename))
