@@ -72,7 +72,7 @@ def cache_run(f, cache_file=None, cache=True, args=None):
 
 # https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html
 
-BASE = '../adversarial/isic/'
+BASE = '/hdd1/Callum/adversarial/isic/'
 data_dir = BASE + 'dataset-classify'
 model_dir = '/data/isic/analysed/classify/' # to train with magnus model
 # model_dir = BASE + 'analysed/classify/'  # to train with CA retrained jitter
