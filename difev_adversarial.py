@@ -466,6 +466,7 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
     difev_vars.trans_image = difev_vars.model.normalize_totensor(difev_vars.image)
     # Load model
     X = difev_vars.model.run(difev_vars.trans_image)
+    print(X, "X")
     difev_vars.prob_orig = softmax(X.data.cpu().numpy()[0])
     difev_vars.pred_orig = np.argmax(difev_vars.prob_orig)
     print('Prediction before attack: %s' % (class_names[difev_vars.pred_orig]))
