@@ -74,8 +74,8 @@ def cache_run(f, cache_file=None, cache=True, args=None):
 
 BASE = './isic/'
 data_dir = BASE + 'dataset-classify'
-# model_dir = '/data/isic/analysed/classify/' # to train with magnus model
-model_dir = BASE + 'analysed/classify/'  # to train with CA retrained jitter
+model_dir = '/data/isic/analysed/classify/' # to train with magnus model
+# model_dir = BASE + 'analysed/classify/'  # to train with CA retrained jitter
 # Models to choose from [resnet, alexnet, vgg, squeezenet, densenet, inception]
 num_classes = 2
 batch_size = 8
