@@ -235,6 +235,15 @@ class CaffeModel:
         image = self.transform_img(image)
         return image
 
+    def normalize_totensor(self, image):
+        """
+        Input PIL image
+        output cuda tensor
+        """
+        x = self.load_image(image)
+        x = x.repeat(1, 1, 1, 1)
+        return x
+
     def get_max_diagnosis(self, diagnosis):
         """
         get the max diagnosis value from a list of names
