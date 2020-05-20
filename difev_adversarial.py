@@ -646,7 +646,7 @@ def run_attack_caffe(attack, img_path, filename, target, fig_path, save=True):
     print('Prediction before attack: %s' % difev_vars.pred_orig)
     print('Probability: %f' % difev_vars.prob_orig)
 
-    if class_names[difev_vars.pred_orig] == target:
+    if difev_vars.pred_orig == target:
         print('Matches target before attack')
         return 'incorrect class'
 
@@ -663,14 +663,14 @@ def run_attack_caffe(attack, img_path, filename, target, fig_path, save=True):
     out = difev_vars.model.run(trans_adv_image)
     prob = softmax(out.data.numpy()[0])
 
-    a = class_names[difev_vars.pred_orig]
-    b = class_names[difev_vars.pred_adv]
+    a = difev_vars.pred_orig
+    b = difev_vars.pred_adv
 
     if a != b:
         print('Successful attack')
-        print('Prob [%s]: %f --> Prob[%s]: %f' % (class_names[difev_vars.pred_orig],
+        print('Prob [%s]: %f --> Prob[%s]: %f' % (difev_vars.pred_orig,
                                                   difev_vars.prob_orig[difev_vars.pred_orig],
-                                                  class_names[difev_vars.pred_adv],
+                                                  difev_vars.pred_adv,
                                                   difev_vars.prob_adv[difev_vars.pred_adv]))
         base_name = filename.split('.')[0]
         name_image = fig_path + base_name + '_orig_%.3f' % (difev_vars.prob_orig[difev_vars.pred_orig]) + '.jpg'
