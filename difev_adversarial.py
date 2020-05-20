@@ -237,24 +237,24 @@ class CaffeModel:
 
     def normalize_totensor(self, image):
         """
-        Input PIL image
+        Input CV2 image
         output cuda tensor
         """
-        x = self.load_image(image)
+        #x = self.load_image(image)
         x = x.repeat(1, 1, 1, 1)
         return x
 
-    def get_max_diagnosis(self, diagnosis):
-        """
-        get the max diagnosis value from a list of names
-        :param diagnosis: list [fname, [disease, number], [disease, number],...]
-        :return: the max diagnosis and name - ['Wart', 0.9997361302375793]
-        """
-        ints = [d[1] for d in diagnosis[1:]]
-        idx = ints.index(max(ints))  # get index of max value
-        final = diagnosis[idx + 1]  # added the plus one to account for name at idx 0
-        final.insert(0, os.path.split(diagnosis[0])[1])
-        return final
+#    def get_max_diagnosis(self, diagnosis):
+#        """
+#        get the max diagnosis value from a list of names
+#        :param diagnosis: list [fname, [disease, number], [disease, number],...]
+#        :return: the max diagnosis and name - ['Wart', 0.9997361302375793]
+#        """
+#        ints = [d[1] for d in diagnosis[1:]]
+#        idx = ints.index(max(ints))  # get index of max value
+#        final = diagnosis[idx + 1]  # added the plus one to account for name at idx 0
+#        final.insert(0, os.path.split(diagnosis[0])[1])
+#        return final
 
     def getname(self, i):
         for j, dx_ in enumerate(self.main_dx):
@@ -302,6 +302,8 @@ class CaffeModel:
         countall = 0.0
         correct = 0.0
         all_results = []
+        
+        assert len(final_result)==1
 
         for final_ in final_result:
             countall += 1
@@ -326,12 +328,22 @@ class CaffeModel:
                         diagnosis.append([self.getname(i), p_])
                         results.append((self.getname(i), p_, final_[0]))
 
-            final_diagnosis = self.get_max_diagnosis(diagnosis)
-            all_results.append(final_diagnosis)
-            diagnosis = final_diagnosis[1]
-            confidence = final_diagnosis[2]
-            print(diagnosis, confidence)
-            return diagnosis, confidence
+            #diagnosis_sum = sum([x[1] for x in diagnosis[1:]])
+            #assert abs(diagnosis_sum-1.0) < 0.001
+            diagnosis = {x[0]:x[1] for x in diagnosis[1:]}
+            p_melanoma = diagnosis['Malignant melanoma']
+            p_nevus = diagnosis['Melanocytic nevus']
+            p_melanoma,p_nevus = softmax([p_melanoma,p_nevus])
+            return (p_melanoma,p_nevus)
+        
+
+#            import pdb; pdb.set_trace()
+#            final_diagnosis = self.get_max_diagnosis(diagnosis)
+#            all_results.append(final_diagnosis)
+#            diagnosis = final_diagnosis[1]
+#            confidence = final_diagnosis[2]
+#            print(diagnosis, confidence)
+#            return diagnosis, confidence
 
     def run(self, image):
         transformer = caffe.io.Transformer({'data': self.net.blobs['data'].data.shape})
@@ -469,7 +481,6 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
     difev_vars.stage = 0
     difev_vars.perturb_fn = attack.perturb
 
-    difev_vars.model = PytorchModel()
     # load image to perturb
     difev_vars.image = difev_vars.model.load_image(img_path + filename)
     difev_vars.trans_image = difev_vars.model.normalize_totensor(difev_vars.image)
@@ -545,6 +556,7 @@ def attack_all(attack, img_path, results_path, fig_path):
     """
     Run attacks on all images in the validation set
     """
+    assert False #not yet edited 
     import os
     from shutil import copyfile
 
@@ -634,115 +646,138 @@ def plot_results():
     pl.show()
 
 
-def run_attack_caffe(attack, img_path, filename, target, fig_path, save=True):
+#def run_attack_caffe(attack, img_path, filename, target, fig_path, save=True):
+#    global difev_vars
+#    # assert difev_vars.model is not None
+#    assert target in class_names
+#    difev_vars.stage = 0
+#    difev_vars.perturb_fn = attack.perturb
+#
+#    difev_vars.model = CaffeModel()
+#    # load image to perturb
+#    difev_vars.image = difev_vars.model.load_image(img_path + filename)
+#    # difev_vars.trans_image = difev_vars.model.normalize_totensor(difev_vars.image)
+#    # Load model
+#    X = difev_vars.model.run(difev_vars.image)  # changed from trans_image
+#
+#    print("going well...")
+#
+#    difev_vars.prob_orig = float(X[1])
+#    difev_vars.pred_orig = X[0]
+#    print('Prediction before attack: %s' % difev_vars.pred_orig)
+#    print('Probability: %f' % difev_vars.prob_orig)
+#
+#    if difev_vars.pred_orig == target:
+#        print('Matches target before attack')
+#        return 'incorrect class'
+#
+#    # Run the differential evolution attack
+#    import warnings
+#    with warnings.catch_warnings():
+#        warnings.filterwarnings("ignore", category=UserWarning)
+#        result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
+#                                        callback=callback, workers=1)
+#        # result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
+#        # callback=callback)
+#    adv_image = difev_vars.perturb_fn(result.x)
+#    trans_adv_image = adv_image.ravel() ### difev_vars.model.normalize_totensor(adv_image).repeat(1, 1, 1, 1)
+#    out = difev_vars.model.run(trans_adv_image)
+#    prob = softmax(out.data.numpy()[0])
+#
+#    a = difev_vars.pred_orig
+#    b = difev_vars.pred_adv
+#
+#    if a != b:
+#        print('Successful attack')
+#        print('Prob [%s]: %f --> Prob[%s]: %f' % (difev_vars.pred_orig,
+#                                                  difev_vars.prob_orig[difev_vars.pred_orig],
+#                                                  difev_vars.pred_adv,
+#                                                  difev_vars.prob_adv[difev_vars.pred_adv]))
+#        base_name = filename.split('.')[0]
+#        name_image = fig_path + base_name + '_orig_%.3f' % (difev_vars.prob_orig[difev_vars.pred_orig]) + '.jpg'
+#        name_adv = fig_path + base_name + '_adv_%.3f' % (difev_vars.prob_adv[difev_vars.pred_adv]) + '.jpg'
+#        adv_image.save(name_adv, 'jpeg')
+#        difev_vars.image.save(name_image, 'jpeg')
+#        if attack.name == 'pixel':
+#            name_diff = fig_path + base_name + '_diff' + '.jpg'
+#            diff = PIL.ImageChops.difference(adv_image, difev_vars.image)
+#            diff.save(name_diff)
+## difev_vars.image.show()
+#        # adv_image.show()
+#        return 'success'
+#
+#    else:
+#        print('Attack failed')
+#        return 'failed'
+#
+#
+#def attack_caffe(attack, img_path, results_path, fig_path):
+#   """
+#   Run attacks on all images in the validation set
+#   """
+#   import os
+#   from shutil import copyfile
+#
+#   if attack == 'pixel':
+#       attack = PixelAttack()
+#   elif attack == 'color':
+#       attack = ColorAttack()
+#   elif attack == 'rotation':
+#       attack = RotationTranslationAttack()
+#   attack.d = 3
+#   target = 'nevus'
+#   # load model to attack
+#   caffe.set_mode_cpu()
+#
+#   # difev_vars.model.eval()
+#   results = {}
+#   if os.path.exists(results_path + os.sep + 'results.pkl'):
+#       results = pickle.load(open(results_path + 'results.pkl', 'rb'))
+#
+#   for filename in os.listdir(img_path):
+#       print(img_path + filename)
+#       assert (os.path.exists(img_path + filename))
+#       if filename + os.sep + attack.name in results:
+#           print('skipping')
+#           continue
+#       outcome = run_attack_caffe(attack, img_path, filename, target, fig_path=fig_path, save=False)
+#       # p_best = difev_vars.prob_adv[class_names.index(target)]
+#       results[filename + os.sep + attack.name] = {'outcome': outcome,
+#                                                   'orig': difev_vars.prob_orig[difev_vars.pred_orig]}
+#       # 'adv': p_best}
+#       if os.path.exists(results_path + 'results.pkl'):
+#           copyfile(results_path + 'results.pkl', results_path + 'results.old')
+#       pickle.dump(results, open(results_path + 'results.pkl', 'wb'))
+
+def test_caffe():
+    model = CaffeModel()
+    #img_path='./naevi/'\
+    img_path = './test-asan test/biopsy/malignantmelanoma/'
+    result = None
+    for filename in os.listdir(img_path): 
+        print(img_path + filename)
+        image = model.load_image(img_path+filename)
+        result = model.run(image) 
+        print(result)
+
+def test():
     global difev_vars
-    # assert difev_vars.model is not None
-    assert target in class_names
-    difev_vars.stage = 0
-    difev_vars.perturb_fn = attack.perturb
-
+    attack = ColorAttack() 
+    
+    #img_path = './melanoma/'
+    #difev_vars.model = PytorchModel()
+  
+    img_path = './test-asan test/biopsy/malignantmelanoma/'
     difev_vars.model = CaffeModel()
-    # load image to perturb
-    difev_vars.image = difev_vars.model.load_image(img_path + filename)
-    # difev_vars.trans_image = difev_vars.model.normalize_totensor(difev_vars.image)
-    # Load model
-    X = difev_vars.model.run(difev_vars.image)  # changed from trans_image
-
-    print("going well...")
-
-    difev_vars.prob_orig = float(X[1])
-    difev_vars.pred_orig = X[0]
-    print('Prediction before attack: %s' % difev_vars.pred_orig)
-    print('Probability: %f' % difev_vars.prob_orig)
-
-    if difev_vars.pred_orig == target:
-        print('Matches target before attack')
-        return 'incorrect class'
-
-    # Run the differential evolution attack
-    import warnings
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=UserWarning)
-        result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
-                                        callback=callback, workers=1)
-        # result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
-        # callback=callback)
-    adv_image = difev_vars.perturb_fn(result.x)
-    trans_adv_image = adv_image.ravel() ### difev_vars.model.normalize_totensor(adv_image).repeat(1, 1, 1, 1)
-    out = difev_vars.model.run(trans_adv_image)
-    prob = softmax(out.data.numpy()[0])
-
-    a = difev_vars.pred_orig
-    b = difev_vars.pred_adv
-
-    if a != b:
-        print('Successful attack')
-        print('Prob [%s]: %f --> Prob[%s]: %f' % (difev_vars.pred_orig,
-                                                  difev_vars.prob_orig[difev_vars.pred_orig],
-                                                  difev_vars.pred_adv,
-                                                  difev_vars.prob_adv[difev_vars.pred_adv]))
-        base_name = filename.split('.')[0]
-        name_image = fig_path + base_name + '_orig_%.3f' % (difev_vars.prob_orig[difev_vars.pred_orig]) + '.jpg'
-        name_adv = fig_path + base_name + '_adv_%.3f' % (difev_vars.prob_adv[difev_vars.pred_adv]) + '.jpg'
-        adv_image.save(name_adv, 'jpeg')
-        difev_vars.image.save(name_image, 'jpeg')
-        if attack.name == 'pixel':
-            name_diff = fig_path + base_name + '_diff' + '.jpg'
-            diff = PIL.ImageChops.difference(adv_image, difev_vars.image)
-            diff.save(name_diff)
-
-        # difev_vars.image.show()
-        # adv_image.show()
-        return 'success'
-
-    else:
-        print('Attack failed')
-        return 'failed'
-
-
-def attack_caffe(attack, img_path, results_path, fig_path):
-   """
-   Run attacks on all images in the validation set
-   """
-   import os
-   from shutil import copyfile
-
-   if attack == 'pixel':
-       attack = PixelAttack()
-   elif attack == 'color':
-       attack = ColorAttack()
-   elif attack == 'rotation':
-       attack = RotationTranslationAttack()
-   attack.d = 3
-   target = 'nevus'
-   # load model to attack
-   caffe.set_mode_cpu()
-
-   # difev_vars.model.eval()
-   results = {}
-   if os.path.exists(results_path + os.sep + 'results.pkl'):
-       results = pickle.load(open(results_path + 'results.pkl', 'rb'))
-
-   for filename in os.listdir(img_path):
-       print(img_path + filename)
-       assert (os.path.exists(img_path + filename))
-       if filename + os.sep + attack.name in results:
-           print('skipping')
-           continue
-       outcome = run_attack_caffe(attack, img_path, filename, target, fig_path=fig_path, save=False)
-       # p_best = difev_vars.prob_adv[class_names.index(target)]
-       results[filename + os.sep + attack.name] = {'outcome': outcome,
-                                                   'orig': difev_vars.prob_orig[difev_vars.pred_orig]}
-       # 'adv': p_best}
-       if os.path.exists(results_path + 'results.pkl'):
-           copyfile(results_path + 'results.pkl', results_path + 'results.old')
-       pickle.dump(results, open(results_path + 'results.pkl', 'wb'))
-
-
+  
+   
+    result = None
+    for filename in os.listdir(img_path): 
+        run_attack(attack, img_path=img_path, filename =filename,target='nevus',fig_path='./difev/',save=False) 
 
 if __name__ == "__main__":
-    attack = 'pixel'
-    attack_caffe(attack, img_path='./melanoma/', results_path='./difev/', fig_path='./difev/' + attack + '/')
+    test()
+    #attack_caffe(attack, img_path='./melanoma/', results_path='./difev/', fig_path='./difev/' + attack + '/')
 
 
 # attack = 'pixel'
