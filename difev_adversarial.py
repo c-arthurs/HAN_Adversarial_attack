@@ -673,8 +673,7 @@ def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/")
     for attack in attacks:
         for filename in os.listdir(img_path):
             print(f"running {str(attack)} attack")
-            run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev/', save=False)
-
+            run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev1/', save=False)
 
 if __name__ == "__main__":
     main(model = "caffe")
