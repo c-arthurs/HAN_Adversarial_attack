@@ -667,18 +667,17 @@ def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/")
         difev_vars.model = PytorchModel()
     if model == "caffe":
         difev_vars.model = CaffeModel()
-    result = None
 
     attacks = [ColorAttack(), PixelAttack, RotationTranslationAttack]
 
     for attack in attacks:
         for filename in os.listdir(img_path):
-            # attack = ColorAttack()
+            print(f"running {str(attack)} attack")
             run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev/', save=False)
 
 
 if __name__ == "__main__":
-    main()
+    main(model = "caffe")
     # attack_caffe(attack, img_path='./melanoma/', results_path='./difev/', fig_path='./difev/' + attack + '/')
 
 # attack = 'pixel'
