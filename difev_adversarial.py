@@ -457,10 +457,8 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
     assert target in class_names
     difev_vars.stage = 0
     difev_vars.perturb_fn = attack.perturb
-
     difev_vars.image = difev_vars.model.load_image(img_path + filename)
     X = difev_vars.model.run(difev_vars.image)
-    print(X, "X")
     # difev_vars.prob_orig = softmax(X.data.cpu().numpy()[0])
     difev_vars.prob_orig = softmax(X)
     difev_vars.pred_orig = np.argmax(difev_vars.prob_orig)
@@ -667,8 +665,8 @@ def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/")
 
     results = {}
     fig_path = './difev1/'
-    if os.path.exists(fig_path + os.sep + 'results.pkl'):
-        results = pickle.load(open(fig_path + 'results.pkl', 'rb'))
+    if os.path.exists(fig_path + os.sep + 'results_' + model + '.pkl'):
+        results = pickle.load(open(fig_path + os.sep + 'results_' + model + '.pkl', 'rb'))
 
     attacks = [ColorAttack(), PixelAttack(), RotationTranslationAttack()]
     for attack in attacks:
@@ -677,7 +675,6 @@ def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/")
                 print('skipping')
                 continue
 
-            print(f"running {str(attack)} attack")
             outcome = run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev1/',
                                  save=False)
             results[filename + os.sep + attack.name + os.sep + model] = {'outcome': outcome,
@@ -685,22 +682,15 @@ def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/")
                                                                              difev_vars.pred_orig],
                                                                          "adversarial":
                                                                              difev_vars.prob_adv[difev_vars.pred_adv]}
-            print(results)
-            if os.path.exists(fig_path + 'results.pkl'):
-                copyfile(fig_path + 'results.pkl', fig_path + 'results.old')
-            pickle.dump(results, open(fig_path + 'results.pkl', 'wb'))
+            if os.path.exists(fig_path + os.sep + 'results_' + model + '.pkl'):
+                copyfile(fig_path + os.sep + 'results_' + model + '.pkl',
+                         fig_path + os.sep + 'results_' + model + '.old')
+            pickle.dump(results, open(fig_path + os.sep + 'results_' + model + '.pkl', 'wb'))
 
 
 if __name__ == "__main__":
     main(model="caffe")
-    # attack_caffe(attack, img_path='./melanoma/', results_path='./difev/', fig_path='./difev/' + attack + '/')
+    print("finished running caffe model")
+    main(model="pytorch")
 
-# attack = 'pixel'
-# attack_all(attack, img_path='./melanoma/', results_path='./difev/',
-#            fig_path='./difev/' + attack + '/')
-# attack = 'color'
-# attack_all(attack, img_path='./melanoma/', results_path='./difev/',
-#            fig_path='./difev/' + attack + '_colour_jitter/')
-# attack = 'rotation'
-# attack_all(attack, img_path='./melanoma/', results_path='./difev/',
-#            fig_path='./difev/' + attack + '/')
+
