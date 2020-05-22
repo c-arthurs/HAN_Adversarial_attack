@@ -20,6 +20,7 @@ import caffe
 from caffe.proto import caffe_pb2
 import numpy as np
 import cv2
+from shutil import copyfile
 
 is_cuda = classify.is_cuda
 # Global variables - do not change during runtime
@@ -668,22 +669,27 @@ def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/")
     if model == "caffe":
         difev_vars.model = CaffeModel()
 
-    attacks = [ColorAttack(), PixelAttack(), RotationTranslationAttack()]
-
     results = {}
     fig_path = './difev1/'
     if os.path.exists(fig_path + os.sep + 'results.pkl'):
-        results = pickle.load(open(fig_path + 'results.pkl', 'rb')
+        results = pickle.load(open(fig_path + 'results.pkl', 'rb'))
 
-
+    attacks = [ColorAttack(), PixelAttack(), RotationTranslationAttack()]
     for attack in attacks:
         for filename in os.listdir(img_path):
+            if filename + os.sep + attack.name in results:
+                print('skipping')
+                continue
+
             print(f"running {str(attack)} attack")
             outcome = run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev1/',
                                  save=False)
             results[filename + os.sep + attack.name] = {'outcome': outcome,
                                                         'orig': difev_vars.prob_orig[difev_vars.pred_orig]}
             print(results)
+            if os.path.exists(fig_path + 'results.pkl'):
+                copyfile(fig_path + 'results.pkl', fig_path + 'results.old')
+            pickle.dump(results, open(fig_path + 'results.pkl', 'wb'))
 
 
 
