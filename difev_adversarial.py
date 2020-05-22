@@ -477,7 +477,7 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
         result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
-                                        callback=callback, workers=5)
+                                        callback=callback, workers=1)
         # result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
         # callback=callback)
     adv_image = difev_vars.perturb_fn(result.x)
