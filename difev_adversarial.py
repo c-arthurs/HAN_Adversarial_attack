@@ -624,31 +624,31 @@ def plot_results():
     pl.show()
 
 
-def test_caffe():
-    model = CaffeModel()
-    # img_path='./naevi/'\
-    img_path = './test-asan test/biopsy/malignantmelanoma/'
-    result = None
-    for filename in os.listdir(img_path):
-        print(img_path + filename)
-        image = model.load_image(img_path + filename)
-        result = model.run(image)
-        print(result)
-
-
-def test():
-    global difev_vars
-    attack = ColorAttack()
-
-    # img_path = './melanoma/'
-    # difev_vars.model = PytorchModel()
-
-    img_path = './test-asan test/biopsy/malignantmelanoma/'
-    difev_vars.model = PytorchModel()
-
-    result = None
-    for filename in os.listdir(img_path):
-        run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev/', save=False)
+# def test_caffe():
+#     model = CaffeModel()
+#     # img_path='./naevi/'\
+#     img_path = './test-asan test/biopsy/malignantmelanoma/'
+#     result = None
+#     for filename in os.listdir(img_path):
+#         print(img_path + filename)
+#         image = model.load_image(img_path + filename)
+#         result = model.run(image)
+#         print(result)
+#
+#
+# def test():
+#     global difev_vars
+#     attack = ColorAttack()
+#
+#     # img_path = './melanoma/'
+#     # difev_vars.model = PytorchModel()
+#
+#     img_path = './test-asan test/biopsy/malignantmelanoma/'
+#     difev_vars.model = PytorchModel()
+#
+#     result = None
+#     for filename in os.listdir(img_path):
+#         run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev/', save=False)
 
 
 def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/"):
@@ -668,9 +668,13 @@ def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/")
     if model == "caffe":
         difev_vars.model = CaffeModel()
     result = None
-    for filename in os.listdir(img_path):
-        attack = ColorAttack()
-        run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev/', save=False)
+
+    attacks = [ColorAttack(), PixelAttack, RotationTranslationAttack]
+
+    for attack in attacks:
+        for filename in os.listdir(img_path):
+            # attack = ColorAttack()
+            run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev/', save=False)
 
 
 if __name__ == "__main__":
