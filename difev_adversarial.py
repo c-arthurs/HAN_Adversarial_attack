@@ -73,12 +73,12 @@ class PytorchModel:
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
 
-#    def resize_center(self, image):
-#        """
-#        input PIL image
-#        output PIL image
-#        """
-#        return self.loader1(image)
+    #    def resize_center(self, image):
+    #        """
+    #        input PIL image
+    #        output PIL image
+    #        """
+    #        return self.loader1(image)
 
     def normalize_totensor(self, image):
         """
@@ -93,7 +93,7 @@ class PytorchModel:
     def load_image(self, filename):
         # Load the image that we modify
         image = Image.open(filename)
-        image =  self.loader1(image)
+        image = self.loader1(image)
         return image
 
     def run(self, image):
@@ -104,6 +104,7 @@ class PytorchModel:
         image = self.normalize_totensor(image)
         result = self.model(image)
         return result.data.cpu().numpy()[0]
+
 
 class CaffeModel:
     """
@@ -119,89 +120,96 @@ class CaffeModel:
         self.net = self.loadcaffemodel(model_path, name_caffemodel, deployname)
         self.list_alias = []
         self.list_dx = ['abnom', 'abscess', 'acanthosisnigricans', 'acne', 'acneiformeruption', 'acnescar',
-                   'acrallentiginousnevus',
-                   'actiniccheilitis', 'actinickeratosis', 'acutegeneralizedexanthematouspustulosis', 'acutegvhd',
-                   'adultonsetstillsdisease', 'allergiccontactdermatitis', 'allergicvasculitis', 'alopecia',
-                   'alopeciaareata',
-                   'amyloidosis', 'androgenicalopecia', 'angioedema', 'angiofibroma', 'angiokeratoma', 'angiolipoma',
-                   'ashydermatitis', 'ashydermatosis', 'atopicdermatitis', 'atypicalmycobacterialinfection',
-                   'basalcellcarcinoma', 'basalcellcarcinoma_postop', 'beckernevus', 'behcetdisease', 'bluenevus',
-                   'bowendisease', 'bowenoidpapulosis', 'bullousdisease', 'bullousdrugeruption', 'bullouspemphigoid',
-                   'burn',
-                   'burnscar', 'cafeaulaitmacule', 'calcinosiscutis', 'callus', 'cellulitis',
-                   'cetuximabinducedacneiformeruption', 'cheilitis', 'chickenpox', 'cholinergicurticaria',
-                   'chroniceczema',
-                   'chronicgvhd', 'chronicurticaria', 'coldinducedurticaria', 'condyloma',
-                   'confluentreticulatedpapillomatosis',
-                   'congenitalnevus', 'connectivetissuedisease', 'contactcheilitis', 'contactdermatitis',
-                   'cutaneoushorn',
-                   'cyst', 'darkcircle', 'depressedscar', 'dermatitisherpetiformis', 'dermatofibroma',
-                   'dermatomyositis',
-                   'dilatedpore', 'dirtyneck', 'dohimelanosis', 'drugeruption', 'dyshidroticeczema', 'dysplasticnevus',
-                   'eczema', 'eczemaherpeticum', 'epidermalcyst', 'epidermalnevus', 'eruptivesyringoma',
-                   'erythemaabigne',
-                   'erythemaannularecentrifugum', 'erythemamultiforme', 'erythemanodosum', 'exfoliativedermatitis',
-                   'extramammarypagetdisease', 'fibroma', 'fixeddrugeruption', 'folliculitis', 'fordycespot',
-                   'foreignbodygranuloma', 'foreignbodyreaction', 'freckle', 'fungalinfection', 'furuncle',
-                   'glomustumor',
-                   'graftversushostdisease', 'granuloma', 'granulomaannulare', 'guttatepsoriasis', 'handeczema',
-                   'hemangioma',
-                   'hematoma', 'henochschonleinpurpura', 'herpessimplex', 'herpeszoster', 'hyperpigmentation',
-                   'hypersensitivityvasculitis', 'hypertrophicscar', 'hypopigmentation',
-                   'idiopathicguttatehypomelanosis',
-                   'idreaction', 'impetigo', 'inflammedcyst', 'ingrowingnail', 'insectbite', 'intradermalnevus',
-                   'irritantcontactdermatitis', 'irritatedlentigo', 'irritatedseborrheickeratosis',
-                   'juvenilexanthogranuloma',
-                   'kaposisarcoma', 'keloid', 'keratoacanthoma', 'keratoderma', 'keratosispilaris',
-                   'langerhanscellhistiocytosis', 'lasertoning', 'lentigo', 'leukemiacutis',
-                   'leukocytoclasticvasculitis',
-                   'lichenamyloidosis', 'lichennitidus', 'lichenoiddrugeruption', 'lichenplanus',
-                   'lichensimplexchronicus',
-                   'lichenstriatus', 'lipoma', 'lipomatosis', 'livedoidvasculitis', 'livedoreticularis', 'lmdf',
-                   'lupuserythematosus', 'lymphangioma', 'lymphoma', 'lymphomatoidpapulosis', 'malignantmelanoma',
-                   'mastocytoma', 'mastocytosis', 'melanocyticnevus', 'melanonychia', 'melasma', 'metastasis', 'milia',
-                   'milium', 'molluscumcontagiosum', 'morphea', 'mucocele', 'mucosalmelanoticmacule', 'mucouscyst',
-                   'mycosisfungoides', 'naildystrophy', 'neurofibroma', 'neurofibromatosis', 'nevus_postop',
-                   'nevusdepigmentosus', 'nevussebaceus', 'nevusspilus', 'nippleeczema', 'normalnail', 'ntminfection',
-                   'nummulareczema', 'onycholysis', 'onychomycosis', 'organoidnevus', 'otanevus', 'otherdermatitis',
-                   'pagetsdisease', 'palmoplantarpustulosis', 'panniculitis', 'papularurticaria', 'parapsoriasis',
-                   'paronychia',
-                   'pemphigusfoliaceus', 'pemphigusvulgaris', 'perioraldermatitis', 'photosensitivedermatitis',
-                   'pigmentedcontactdermatitis', 'pigmentednevus', 'pigmentedprogressivepurpuricdermatosis',
-                   'pilarcyst',
-                   'pilomatricoma', 'pityriasisalba', 'pityriasislichenoideschronica',
-                   'pityriasislichenoidesetvarioliformisacuta', 'pityriasisrosea', 'pityriasisrubrapilaris',
-                   'poikiloderma',
-                   'pompholyx', 'porokeratosis', 'poroma', 'portwinestain', 'postinflammatoryhyperpigmentation',
-                   'prurigonodularis', 'prurigopigmentosa', 'pruritus', 'pseudolymphoma', 'psoriasis', 'puppp',
-                   'purpura',
-                   'pustularpsoriasis', 'pyodermagangrenosum', 'pyogenicgranuloma', 'rhielmelanosis', 'rosacea',
-                   'rupturedcyst',
-                   'sarcoidosis', 'scabies', 'scar', 'scar_postlaser', 'scar_postop', 'scc_postop', 'scleroderma',
-                   'sebaceoushyperplasia', 'seborrheicdermatitis', 'seborrheickeratosis', 'skintag', 'softfibroma',
-                   'squamouscellcarcinoma', 'staphylococcalscaldedskinsyndrome', 'stasisdermatitis',
-                   'steatocystomamultiplex',
-                   'steroidrosacea', 'striaedistensae', 'subcutaneousnodule', 'subungalhematoma', 'sweetsyndrome',
-                   'syringoma',
-                   'systemiccontactdermatitis', 'systemiclupuserythematosus', 'tattoo', 'telangiectasia',
-                   'tineacorporis',
-                   'tineafaciale', 'tineapedis', 'toxicepidermalnecrolysis', 'traumaticfatnecrosis', 'traumatictattoo',
-                   'ulcer',
-                   'urticaria', 'urticarialvasculitis', 'urticariapigmentosa', 'varicella', 'vascularmalformation',
-                   'vasculitis', 'venouslake', 'venousmalformation', 'verrucaplana', 'viralexanthem', 'vitiligo',
-                   'wart',
-                   'wrinkle', 'xanthelasma', 'xanthogranuloma', 'xanthoma', 'xeroticeczema']
+                        'acrallentiginousnevus',
+                        'actiniccheilitis', 'actinickeratosis', 'acutegeneralizedexanthematouspustulosis', 'acutegvhd',
+                        'adultonsetstillsdisease', 'allergiccontactdermatitis', 'allergicvasculitis', 'alopecia',
+                        'alopeciaareata',
+                        'amyloidosis', 'androgenicalopecia', 'angioedema', 'angiofibroma', 'angiokeratoma',
+                        'angiolipoma',
+                        'ashydermatitis', 'ashydermatosis', 'atopicdermatitis', 'atypicalmycobacterialinfection',
+                        'basalcellcarcinoma', 'basalcellcarcinoma_postop', 'beckernevus', 'behcetdisease', 'bluenevus',
+                        'bowendisease', 'bowenoidpapulosis', 'bullousdisease', 'bullousdrugeruption',
+                        'bullouspemphigoid',
+                        'burn',
+                        'burnscar', 'cafeaulaitmacule', 'calcinosiscutis', 'callus', 'cellulitis',
+                        'cetuximabinducedacneiformeruption', 'cheilitis', 'chickenpox', 'cholinergicurticaria',
+                        'chroniceczema',
+                        'chronicgvhd', 'chronicurticaria', 'coldinducedurticaria', 'condyloma',
+                        'confluentreticulatedpapillomatosis',
+                        'congenitalnevus', 'connectivetissuedisease', 'contactcheilitis', 'contactdermatitis',
+                        'cutaneoushorn',
+                        'cyst', 'darkcircle', 'depressedscar', 'dermatitisherpetiformis', 'dermatofibroma',
+                        'dermatomyositis',
+                        'dilatedpore', 'dirtyneck', 'dohimelanosis', 'drugeruption', 'dyshidroticeczema',
+                        'dysplasticnevus',
+                        'eczema', 'eczemaherpeticum', 'epidermalcyst', 'epidermalnevus', 'eruptivesyringoma',
+                        'erythemaabigne',
+                        'erythemaannularecentrifugum', 'erythemamultiforme', 'erythemanodosum', 'exfoliativedermatitis',
+                        'extramammarypagetdisease', 'fibroma', 'fixeddrugeruption', 'folliculitis', 'fordycespot',
+                        'foreignbodygranuloma', 'foreignbodyreaction', 'freckle', 'fungalinfection', 'furuncle',
+                        'glomustumor',
+                        'graftversushostdisease', 'granuloma', 'granulomaannulare', 'guttatepsoriasis', 'handeczema',
+                        'hemangioma',
+                        'hematoma', 'henochschonleinpurpura', 'herpessimplex', 'herpeszoster', 'hyperpigmentation',
+                        'hypersensitivityvasculitis', 'hypertrophicscar', 'hypopigmentation',
+                        'idiopathicguttatehypomelanosis',
+                        'idreaction', 'impetigo', 'inflammedcyst', 'ingrowingnail', 'insectbite', 'intradermalnevus',
+                        'irritantcontactdermatitis', 'irritatedlentigo', 'irritatedseborrheickeratosis',
+                        'juvenilexanthogranuloma',
+                        'kaposisarcoma', 'keloid', 'keratoacanthoma', 'keratoderma', 'keratosispilaris',
+                        'langerhanscellhistiocytosis', 'lasertoning', 'lentigo', 'leukemiacutis',
+                        'leukocytoclasticvasculitis',
+                        'lichenamyloidosis', 'lichennitidus', 'lichenoiddrugeruption', 'lichenplanus',
+                        'lichensimplexchronicus',
+                        'lichenstriatus', 'lipoma', 'lipomatosis', 'livedoidvasculitis', 'livedoreticularis', 'lmdf',
+                        'lupuserythematosus', 'lymphangioma', 'lymphoma', 'lymphomatoidpapulosis', 'malignantmelanoma',
+                        'mastocytoma', 'mastocytosis', 'melanocyticnevus', 'melanonychia', 'melasma', 'metastasis',
+                        'milia',
+                        'milium', 'molluscumcontagiosum', 'morphea', 'mucocele', 'mucosalmelanoticmacule', 'mucouscyst',
+                        'mycosisfungoides', 'naildystrophy', 'neurofibroma', 'neurofibromatosis', 'nevus_postop',
+                        'nevusdepigmentosus', 'nevussebaceus', 'nevusspilus', 'nippleeczema', 'normalnail',
+                        'ntminfection',
+                        'nummulareczema', 'onycholysis', 'onychomycosis', 'organoidnevus', 'otanevus',
+                        'otherdermatitis',
+                        'pagetsdisease', 'palmoplantarpustulosis', 'panniculitis', 'papularurticaria', 'parapsoriasis',
+                        'paronychia',
+                        'pemphigusfoliaceus', 'pemphigusvulgaris', 'perioraldermatitis', 'photosensitivedermatitis',
+                        'pigmentedcontactdermatitis', 'pigmentednevus', 'pigmentedprogressivepurpuricdermatosis',
+                        'pilarcyst',
+                        'pilomatricoma', 'pityriasisalba', 'pityriasislichenoideschronica',
+                        'pityriasislichenoidesetvarioliformisacuta', 'pityriasisrosea', 'pityriasisrubrapilaris',
+                        'poikiloderma',
+                        'pompholyx', 'porokeratosis', 'poroma', 'portwinestain', 'postinflammatoryhyperpigmentation',
+                        'prurigonodularis', 'prurigopigmentosa', 'pruritus', 'pseudolymphoma', 'psoriasis', 'puppp',
+                        'purpura',
+                        'pustularpsoriasis', 'pyodermagangrenosum', 'pyogenicgranuloma', 'rhielmelanosis', 'rosacea',
+                        'rupturedcyst',
+                        'sarcoidosis', 'scabies', 'scar', 'scar_postlaser', 'scar_postop', 'scc_postop', 'scleroderma',
+                        'sebaceoushyperplasia', 'seborrheicdermatitis', 'seborrheickeratosis', 'skintag', 'softfibroma',
+                        'squamouscellcarcinoma', 'staphylococcalscaldedskinsyndrome', 'stasisdermatitis',
+                        'steatocystomamultiplex',
+                        'steroidrosacea', 'striaedistensae', 'subcutaneousnodule', 'subungalhematoma', 'sweetsyndrome',
+                        'syringoma',
+                        'systemiccontactdermatitis', 'systemiclupuserythematosus', 'tattoo', 'telangiectasia',
+                        'tineacorporis',
+                        'tineafaciale', 'tineapedis', 'toxicepidermalnecrolysis', 'traumaticfatnecrosis',
+                        'traumatictattoo',
+                        'ulcer',
+                        'urticaria', 'urticarialvasculitis', 'urticariapigmentosa', 'varicella', 'vascularmalformation',
+                        'vasculitis', 'venouslake', 'venousmalformation', 'verrucaplana', 'viralexanthem', 'vitiligo',
+                        'wart',
+                        'wrinkle', 'xanthelasma', 'xanthogranuloma', 'xanthoma', 'xeroticeczema']
 
         self.main_dx2 = ['Malignant melanoma', 'Basal cell carcinoma', 'Squamous cell carcinoma',
-                    'Intraepithelial carcinoma',
-                    'Pyogenic granuloma', 'Seborrheic keratosis', 'Melanocytic nevus', 'Actinic keratosis',
-                    'Dermatofibroma',
-                    'Hemangioma', 'Wart', 'Lentigo']
+                         'Intraepithelial carcinoma',
+                         'Pyogenic granuloma', 'Seborrheic keratosis', 'Melanocytic nevus', 'Actinic keratosis',
+                         'Dermatofibroma',
+                         'Hemangioma', 'Wart', 'Lentigo']
         self.main_dx = ['malignantmelanoma', 'basalcellcarcinoma', 'squamouscellcarcinoma', 'bowendisease',
-                   'pyogenicgranuloma',
-                   'seborrheickeratosis', 'pigmentednevus', 'actinickeratosis', 'dermatofibroma', 'hemangioma', 'wart',
-                   'lentigo']
-
+                        'pyogenicgranuloma',
+                        'seborrheickeratosis', 'pigmentednevus', 'actinickeratosis', 'dermatofibroma', 'hemangioma',
+                        'wart',
+                        'lentigo']
 
     def loadcaffemodel(self, modelbasepath, modelname, deployname):
         mean_blob = caffe_pb2.BlobProto()
@@ -229,8 +237,6 @@ class CaffeModel:
         img = cv2.resize(img, (img_width, img_height), interpolation=cv2.INTER_CUBIC)
         return img
 
-
-
     def getname(self, i):
         for j, dx_ in enumerate(self.main_dx):
             if dx_ == self.list_dx[i]: return self.main_dx2[j]
@@ -250,7 +256,7 @@ class CaffeModel:
         return basenames
 
     def get_final_results(self, out):
-        img_path = "" #  temp
+        img_path = ""  # temp
         threshold = [726, 39, 172, 429, 166, 9, 227, 18, 14, 30, 1107, 305]
 
         final_result = []
@@ -277,8 +283,8 @@ class CaffeModel:
         countall = 0.0
         correct = 0.0
         all_results = []
-        
-        assert len(final_result)==1
+
+        assert len(final_result) == 1
 
         for final_ in final_result:
             countall += 1
@@ -303,12 +309,11 @@ class CaffeModel:
                         diagnosis.append([self.getname(i), p_])
                         results.append((self.getname(i), p_, final_[0]))
 
-            diagnosis = {x[0]:x[1] for x in diagnosis[1:]}
+            diagnosis = {x[0]: x[1] for x in diagnosis[1:]}
             p_melanoma = diagnosis['Malignant melanoma']
             p_nevus = diagnosis['Melanocytic nevus']
-            p_melanoma,p_nevus = softmax([p_melanoma,p_nevus])
-            return (p_melanoma,p_nevus)
-    
+            p_melanoma, p_nevus = softmax([p_melanoma, p_nevus])
+            return (p_melanoma, p_nevus)
 
     def load_image(self, filename):
         """
@@ -317,13 +322,12 @@ class CaffeModel:
         """
         image = cv2.imread(filename, cv2.IMREAD_COLOR)
         image = self.transform_img(image)
-        
-        #convert cv2 to PIL
+
+        # convert cv2 to PIL
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = Image.fromarray(image) 
+        image = Image.fromarray(image)
 
         return image
-
 
     def run(self, image):
         """
@@ -331,9 +335,9 @@ class CaffeModel:
         Output: probabilities
         """
 
-        #convert from PIL to CV2
-        image = np.array(image) 
-        image = image[:, :, ::-1].copy() 
+        # convert from PIL to CV2
+        image = np.array(image)
+        image = image[:, :, ::-1].copy()
 
         transformer = caffe.io.Transformer({'data': self.net.blobs['data'].data.shape})
         # transformer.set_mean('data', mean_array)
@@ -348,16 +352,14 @@ def softmax(x):
     return e_x / e_x.sum()
 
 
-
-
 def optimize(x):
     global difev_vars
     adv_image = difev_vars.perturb_fn(x)
-    #trans_adv_image = difev_vars.model.normalize_totensor(adv_image)
-    #out = difev_vars.model.run(trans_adv_image)
+    # trans_adv_image = difev_vars.model.normalize_totensor(adv_image)
+    # out = difev_vars.model.run(trans_adv_image)
     out = difev_vars.model.run(adv_image)
     prob = softmax(out)
-    #prob = softmax(out.data.cpu().numpy()[0])
+    # prob = softmax(out.data.cpu().numpy()[0])
 
     return prob[difev_vars.pred_orig]
 
@@ -365,10 +367,10 @@ def optimize(x):
 def callback(x, convergence):
     global difev_vars
     difev_vars.adv_image = difev_vars.perturb_fn(x)
-    #difev_vars.trans_adv_image = difev_vars.model.normalize_totensor(difev_vars.adv_image)
-    #out = difev_vars.model.run(difev_vars.trans_adv_image)
+    # difev_vars.trans_adv_image = difev_vars.model.normalize_totensor(difev_vars.adv_image)
+    # out = difev_vars.model.run(difev_vars.trans_adv_image)
     out = difev_vars.model.run(difev_vars.adv_image)
-    #difev_vars.prob_adv = softmax(out.data.cpu().numpy()[0])
+    # difev_vars.prob_adv = softmax(out.data.cpu().numpy()[0])
     difev_vars.prob_adv = softmax(out)
     difev_vars.pred_adv = np.argmax(difev_vars.prob_adv)
     p = difev_vars.prob_adv[difev_vars.pred_adv]
@@ -456,11 +458,11 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
     difev_vars.perturb_fn = attack.perturb
 
     difev_vars.image = difev_vars.model.load_image(img_path + filename)
-    #difev_vars.trans_image = difev_vars.model.normalize_totensor(difev_vars.image)
-    #X = difev_vars.model.run(difev_vars.trans_image)
+    # difev_vars.trans_image = difev_vars.model.normalize_totensor(difev_vars.image)
+    # X = difev_vars.model.run(difev_vars.trans_image)
     X = difev_vars.model.run(difev_vars.image)
     print(X, "X")
-    #difev_vars.prob_orig = softmax(X.data.cpu().numpy()[0])
+    # difev_vars.prob_orig = softmax(X.data.cpu().numpy()[0])
     difev_vars.prob_orig = softmax(X)
     difev_vars.pred_orig = np.argmax(difev_vars.prob_orig)
     print('Prediction before attack: %s' % (class_names[difev_vars.pred_orig]))
@@ -479,10 +481,10 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
         # result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
         # callback=callback)
     adv_image = difev_vars.perturb_fn(result.x)
-    #trans_adv_image = difev_vars.model.normalize_totensor(adv_image)
-    #out = difev_vars.model.run(trans_adv_image)
+    # trans_adv_image = difev_vars.model.normalize_totensor(adv_image)
+    # out = difev_vars.model.run(trans_adv_image)
     out = difev_vars.model.run(adv_image)
-    #prob = softmax(out.data.numpy()[0])
+    # prob = softmax(out.data.numpy()[0])
     prob = softmax(out)
 
     a = class_names[difev_vars.pred_orig]
@@ -532,7 +534,7 @@ def attack_all(attack, img_path, results_path, fig_path):
     """
     Run attacks on all images in the validation set
     """
-    assert False #not yet edited 
+    assert False  # not yet edited
     import os
     from shutil import copyfile
 
@@ -622,37 +624,53 @@ def plot_results():
     pl.show()
 
 
-
 def test_caffe():
     model = CaffeModel()
-    #img_path='./naevi/'\
+    # img_path='./naevi/'\
     img_path = './test-asan test/biopsy/malignantmelanoma/'
     result = None
-    for filename in os.listdir(img_path): 
+    for filename in os.listdir(img_path):
         print(img_path + filename)
-        image = model.load_image(img_path+filename)
-        result = model.run(image) 
+        image = model.load_image(img_path + filename)
+        result = model.run(image)
         print(result)
+
 
 def test():
     global difev_vars
-    attack = ColorAttack() 
-    
-    #img_path = './melanoma/'
-    #difev_vars.model = PytorchModel()
-  
+    attack = ColorAttack()
+
+    # img_path = './melanoma/'
+    # difev_vars.model = PytorchModel()
+
     img_path = './test-asan test/biopsy/malignantmelanoma/'
-    difev_vars.model = CaffeModel()
-  
-   
+    difev_vars.model = PytorchModel()
+
     result = None
-    for filename in os.listdir(img_path): 
-        run_attack(attack, img_path=img_path, filename =filename,target='nevus',fig_path='./difev/',save=False) 
+    for filename in os.listdir(img_path):
+        run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev/', save=False)
+
+
+def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/"):
+    """
+    Runs all attacks on a given model. models are either CaffeModel or pytorch model.
+    each attack is handled in turn - pixel, rotation, color.
+    results are saved to an excel file.
+    current target is nevus from melanoma
+    :param model: str, "pytorch" or "caffe"
+    :param img_path: str, path to the files to attack
+    :return: None
+    """
+    img_path = img_path
+    # if model == "pytorch":
+
+
+
+
 
 if __name__ == "__main__":
     test()
-    #attack_caffe(attack, img_path='./melanoma/', results_path='./difev/', fig_path='./difev/' + attack + '/')
-
+    # attack_caffe(attack, img_path='./melanoma/', results_path='./difev/', fig_path='./difev/' + attack + '/')
 
 # attack = 'pixel'
 # attack_all(attack, img_path='./melanoma/', results_path='./difev/',
