@@ -459,8 +459,6 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
     difev_vars.perturb_fn = attack.perturb
 
     difev_vars.image = difev_vars.model.load_image(img_path + filename)
-    # difev_vars.trans_image = difev_vars.model.normalize_totensor(difev_vars.image)
-    # X = difev_vars.model.run(difev_vars.trans_image)
     X = difev_vars.model.run(difev_vars.image)
     print(X, "X")
     # difev_vars.prob_orig = softmax(X.data.cpu().numpy()[0])
@@ -506,71 +504,69 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
             name_diff = fig_path + base_name + '_diff' + '.jpg'
             diff = PIL.ImageChops.difference(adv_image, difev_vars.image)
             diff.save(name_diff)
-
         # difev_vars.image.show()
         # adv_image.show()
         return 'success'
-
     else:
         print('Attack failed')
         return 'failed'
 
 
-def test_paths(test_path_list):
-    test_img_paths = []
-    for test_path in test_path_list:
-        for root, dirs, files in os.walk(test_path):
-            for fname in files:
-                ext = (os.path.splitext(fname)[-1]).lower()
-                if ext == ".jpg" or ext == ".jpeg" or ext == ".gif" or ext == ".png": test_img_paths += [
-                    os.path.join(root, fname)]
+# def test_paths(test_path_list):
+#     test_img_paths = []
+#     for test_path in test_path_list:
+#         for root, dirs, files in os.walk(test_path):
+#             for fname in files:
+#                 ext = (os.path.splitext(fname)[-1]).lower()
+#                 if ext == ".jpg" or ext == ".jpeg" or ext == ".gif" or ext == ".png": test_img_paths += [
+#                     os.path.join(root, fname)]
+#
+#         if (len(test_img_paths) == 0):
+#             print("No image (.jpg .gif .png) exist at " + test_path)
+#             sys.exit(0)
+#     return test_img_paths
 
-        if (len(test_img_paths) == 0):
-            print("No image (.jpg .gif .png) exist at " + test_path)
-            sys.exit(0)
-    return test_img_paths
 
-
-def attack_all(attack, img_path, results_path, fig_path):
-    """
-    Run attacks on all images in the validation set
-    """
-    assert False  # not yet edited
-    import os
-    from shutil import copyfile
-
-    if attack == 'pixel':
-        attack = PixelAttack()
-    elif attack == 'color':
-        attack = ColorAttack()
-    elif attack == 'rotation':
-        attack = RotationTranslationAttack()
-    attack.d = 3
-    target = 'nevus'
-    # load model to attack
-
-    difev_vars.model, _ = classify.initialize_model('inception', num_classes=2, feature_extract=False,
-                                                    use_pretrained=False, load=True)
-    if is_cuda: difev_vars.model.cuda()
-    difev_vars.model.eval()
-    results = {}
-    if os.path.exists(results_path + os.sep + 'results.pkl'):
-        results = pickle.load(open(results_path + 'results.pkl', 'rb'))
-
-    for filename in os.listdir(img_path):
-        print(img_path + filename)
-        assert (os.path.exists(img_path + filename))
-        if filename + os.sep + attack.name in results:
-            print('skipping')
-            continue
-        outcome = run_attack(attack, img_path, filename, target, fig_path=fig_path, save=False)
-        # p_best = difev_vars.prob_adv[class_names.index(target)]
-        results[filename + os.sep + attack.name] = {'outcome': outcome,
-                                                    'orig': difev_vars.prob_orig[difev_vars.pred_orig]}
-        # 'adv': p_best}
-        if os.path.exists(results_path + 'results.pkl'):
-            copyfile(results_path + 'results.pkl', results_path + 'results.old')
-        pickle.dump(results, open(results_path + 'results.pkl', 'wb'))
+# def attack_all(attack, img_path, results_path, fig_path):
+#     """
+#     Run attacks on all images in the validation set
+#     """
+#     assert False  # not yet edited
+#     import os
+#     from shutil import copyfile
+#
+#     if attack == 'pixel':
+#         attack = PixelAttack()
+#     elif attack == 'color':
+#         attack = ColorAttack()
+#     elif attack == 'rotation':
+#         attack = RotationTranslationAttack()
+#     attack.d = 3
+#     target = 'nevus'
+#     # load model to attack
+#
+#     difev_vars.model, _ = classify.initialize_model('inception', num_classes=2, feature_extract=False,
+#                                                     use_pretrained=False, load=True)
+#     if is_cuda: difev_vars.model.cuda()
+#     difev_vars.model.eval()
+#     results = {}
+#     if os.path.exists(results_path + os.sep + 'results.pkl'):
+#         results = pickle.load(open(results_path + 'results.pkl', 'rb'))
+#
+#     for filename in os.listdir(img_path):
+#         print(img_path + filename)
+#         assert (os.path.exists(img_path + filename))
+#         if filename + os.sep + attack.name in results:
+#             print('skipping')
+#             continue
+#         outcome = run_attack(attack, img_path, filename, target, fig_path=fig_path, save=False)
+#         # p_best = difev_vars.prob_adv[class_names.index(target)]
+#         results[filename + os.sep + attack.name] = {'outcome': outcome,
+#                                                     'orig': difev_vars.prob_orig[difev_vars.pred_orig]}
+#         # 'adv': p_best}
+#         if os.path.exists(results_path + 'results.pkl'):
+#             copyfile(results_path + 'results.pkl', results_path + 'results.old')
+#         pickle.dump(results, open(results_path + 'results.pkl', 'wb'))
 
 
 def edit_results():
@@ -677,24 +673,26 @@ def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/")
     attacks = [ColorAttack(), PixelAttack(), RotationTranslationAttack()]
     for attack in attacks:
         for filename in os.listdir(img_path):
-            if filename + os.sep + attack.name in results:
+            if filename + os.sep + attack.name + os.sep + model in results:
                 print('skipping')
                 continue
 
             print(f"running {str(attack)} attack")
             outcome = run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev1/',
                                  save=False)
-            results[filename + os.sep + attack.name] = {'outcome': outcome,
-                                                        'orig': difev_vars.prob_orig[difev_vars.pred_orig]}
+            results[filename + os.sep + attack.name + os.sep + model] = {'outcome': outcome,
+                                                                         'orig': difev_vars.prob_orig[
+                                                                             difev_vars.pred_orig],
+                                                                         "adversarial":
+                                                                             difev_vars.prob_adv[difev_vars.pred_adv]}
             print(results)
             if os.path.exists(fig_path + 'results.pkl'):
                 copyfile(fig_path + 'results.pkl', fig_path + 'results.old')
             pickle.dump(results, open(fig_path + 'results.pkl', 'wb'))
 
 
-
 if __name__ == "__main__":
-    main(model = "caffe")
+    main(model="caffe")
     # attack_caffe(attack, img_path='./melanoma/', results_path='./difev/', fig_path='./difev/' + attack + '/')
 
 # attack = 'pixel'
