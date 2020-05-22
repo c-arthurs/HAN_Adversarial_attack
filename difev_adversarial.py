@@ -73,12 +73,12 @@ class PytorchModel:
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
 
-    def resize_center(self, image):
-        """
-        input PIL image
-        output PIL image
-        """
-        return self.loader1(image)
+#    def resize_center(self, image):
+#        """
+#        input PIL image
+#        output PIL image
+#        """
+#        return self.loader1(image)
 
     def normalize_totensor(self, image):
         """
@@ -93,18 +93,17 @@ class PytorchModel:
     def load_image(self, filename):
         # Load the image that we modify
         image = Image.open(filename)
-        image = self.resize_center(image)
-        # trans_image = self.normalize_totensor(image)
-        # trans_image = trans_image.repeat(1, 1, 1, 1)
-        # assert is_cuda
-        # if is_cuda:
-        #    trans_image = trans_image.cuda()
-        # return image, trans_image
+        image =  self.loader1(image)
         return image
 
     def run(self, image):
-        return self.model(image)
-
+        """
+        Input: PIL image 
+        Output: 2 probs 
+        """
+        image = self.normalize_totensor(image)
+        result = self.model(image)
+        return result.data.cpu().numpy()[0]
 
 class CaffeModel:
     """
@@ -230,31 +229,7 @@ class CaffeModel:
         img = cv2.resize(img, (img_width, img_height), interpolation=cv2.INTER_CUBIC)
         return img
 
-    def load_image(self, filename):
-        image = cv2.imread(filename, cv2.IMREAD_COLOR)
-        image = self.transform_img(image)
-        return image
 
-    def normalize_totensor(self, image):
-        """
-        Input CV2 image
-        output cuda tensor
-        """
-        #x = self.load_image(image)
-        x = x.repeat(1, 1, 1, 1)
-        return x
-
-#    def get_max_diagnosis(self, diagnosis):
-#        """
-#        get the max diagnosis value from a list of names
-#        :param diagnosis: list [fname, [disease, number], [disease, number],...]
-#        :return: the max diagnosis and name - ['Wart', 0.9997361302375793]
-#        """
-#        ints = [d[1] for d in diagnosis[1:]]
-#        idx = ints.index(max(ints))  # get index of max value
-#        final = diagnosis[idx + 1]  # added the plus one to account for name at idx 0
-#        final.insert(0, os.path.split(diagnosis[0])[1])
-#        return final
 
     def getname(self, i):
         for j, dx_ in enumerate(self.main_dx):
@@ -328,24 +303,38 @@ class CaffeModel:
                         diagnosis.append([self.getname(i), p_])
                         results.append((self.getname(i), p_, final_[0]))
 
-            #diagnosis_sum = sum([x[1] for x in diagnosis[1:]])
-            #assert abs(diagnosis_sum-1.0) < 0.001
             diagnosis = {x[0]:x[1] for x in diagnosis[1:]}
             p_melanoma = diagnosis['Malignant melanoma']
             p_nevus = diagnosis['Melanocytic nevus']
             p_melanoma,p_nevus = softmax([p_melanoma,p_nevus])
             return (p_melanoma,p_nevus)
-        
+    
 
-#            import pdb; pdb.set_trace()
-#            final_diagnosis = self.get_max_diagnosis(diagnosis)
-#            all_results.append(final_diagnosis)
-#            diagnosis = final_diagnosis[1]
-#            confidence = final_diagnosis[2]
-#            print(diagnosis, confidence)
-#            return diagnosis, confidence
+    def load_image(self, filename):
+        """
+        Input: Filename
+        Output: PIL image
+        """
+        image = cv2.imread(filename, cv2.IMREAD_COLOR)
+        image = self.transform_img(image)
+        
+        #convert cv2 to PIL
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = Image.fromarray(image) 
+
+        return image
+
 
     def run(self, image):
+        """
+        Input: PIL image
+        Output: probabilities
+        """
+
+        #convert from PIL to CV2
+        image = np.array(image) 
+        image = image[:, :, ::-1].copy() 
+
         transformer = caffe.io.Transformer({'data': self.net.blobs['data'].data.shape})
         # transformer.set_mean('data', mean_array)
         transformer.set_transpose('data', (2, 0, 1))
@@ -359,32 +348,16 @@ def softmax(x):
     return e_x / e_x.sum()
 
 
-# resize_center = transforms.Compose([
-#    transforms.Resize(input_size),
-#    transforms.CenterCrop(input_size),
-# ])
-#
-# normalize_totensor = transforms.Compose([
-#    transforms.ToTensor(),
-#    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-# ])
-#
-#
-# def load_image(filename):
-#    # Load the image that we modify
-#    image = Image.open(filename)
-#    image = resize_center(image)
-#    trans_image = normalize_totensor(image)
-#    trans_image = trans_image.repeat(1, 1, 1, 1).cuda()
-#    return image, trans_image
 
 
 def optimize(x):
     global difev_vars
     adv_image = difev_vars.perturb_fn(x)
-    trans_adv_image = difev_vars.model.normalize_totensor(adv_image).repeat(1, 1, 1, 1)
-    out = difev_vars.model.run(trans_adv_image)
-    prob = softmax(out.data.cpu().numpy()[0])
+    #trans_adv_image = difev_vars.model.normalize_totensor(adv_image)
+    #out = difev_vars.model.run(trans_adv_image)
+    out = difev_vars.model.run(adv_image)
+    prob = softmax(out)
+    #prob = softmax(out.data.cpu().numpy()[0])
 
     return prob[difev_vars.pred_orig]
 
@@ -392,10 +365,11 @@ def optimize(x):
 def callback(x, convergence):
     global difev_vars
     difev_vars.adv_image = difev_vars.perturb_fn(x)
-    difev_vars.trans_adv_image = difev_vars.model.normalize_totensor(difev_vars.adv_image)
-    # inp = Variable(torch.from_numpy(preprocess(adv_img)).float().unsqueeze(0))
-    out = difev_vars.model.run(difev_vars.trans_adv_image)
-    difev_vars.prob_adv = softmax(out.data.cpu().numpy()[0])
+    #difev_vars.trans_adv_image = difev_vars.model.normalize_totensor(difev_vars.adv_image)
+    #out = difev_vars.model.run(difev_vars.trans_adv_image)
+    out = difev_vars.model.run(difev_vars.adv_image)
+    #difev_vars.prob_adv = softmax(out.data.cpu().numpy()[0])
+    difev_vars.prob_adv = softmax(out)
     difev_vars.pred_adv = np.argmax(difev_vars.prob_adv)
     p = difev_vars.prob_adv[difev_vars.pred_adv]
     difev_vars.stage += 1
@@ -481,13 +455,13 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
     difev_vars.stage = 0
     difev_vars.perturb_fn = attack.perturb
 
-    # load image to perturb
     difev_vars.image = difev_vars.model.load_image(img_path + filename)
-    difev_vars.trans_image = difev_vars.model.normalize_totensor(difev_vars.image)
-    # Load model
-    X = difev_vars.model.run(difev_vars.trans_image)
+    #difev_vars.trans_image = difev_vars.model.normalize_totensor(difev_vars.image)
+    #X = difev_vars.model.run(difev_vars.trans_image)
+    X = difev_vars.model.run(difev_vars.image)
     print(X, "X")
-    difev_vars.prob_orig = softmax(X.data.cpu().numpy()[0])
+    #difev_vars.prob_orig = softmax(X.data.cpu().numpy()[0])
+    difev_vars.prob_orig = softmax(X)
     difev_vars.pred_orig = np.argmax(difev_vars.prob_orig)
     print('Prediction before attack: %s' % (class_names[difev_vars.pred_orig]))
     print('Probability: %f' % (difev_vars.prob_orig[difev_vars.pred_orig]))
@@ -501,13 +475,15 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
         result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
-                                        callback=callback, workers=1)
+                                        callback=callback, workers=5)
         # result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
         # callback=callback)
     adv_image = difev_vars.perturb_fn(result.x)
-    trans_adv_image = difev_vars.model.normalize_totensor(adv_image).repeat(1, 1, 1, 1)
-    out = difev_vars.model.run(trans_adv_image)
-    prob = softmax(out.data.numpy()[0])
+    #trans_adv_image = difev_vars.model.normalize_totensor(adv_image)
+    #out = difev_vars.model.run(trans_adv_image)
+    out = difev_vars.model.run(adv_image)
+    #prob = softmax(out.data.numpy()[0])
+    prob = softmax(out)
 
     a = class_names[difev_vars.pred_orig]
     b = class_names[difev_vars.pred_adv]
@@ -646,108 +622,6 @@ def plot_results():
     pl.show()
 
 
-#def run_attack_caffe(attack, img_path, filename, target, fig_path, save=True):
-#    global difev_vars
-#    # assert difev_vars.model is not None
-#    assert target in class_names
-#    difev_vars.stage = 0
-#    difev_vars.perturb_fn = attack.perturb
-#
-#    difev_vars.model = CaffeModel()
-#    # load image to perturb
-#    difev_vars.image = difev_vars.model.load_image(img_path + filename)
-#    # difev_vars.trans_image = difev_vars.model.normalize_totensor(difev_vars.image)
-#    # Load model
-#    X = difev_vars.model.run(difev_vars.image)  # changed from trans_image
-#
-#    print("going well...")
-#
-#    difev_vars.prob_orig = float(X[1])
-#    difev_vars.pred_orig = X[0]
-#    print('Prediction before attack: %s' % difev_vars.pred_orig)
-#    print('Probability: %f' % difev_vars.prob_orig)
-#
-#    if difev_vars.pred_orig == target:
-#        print('Matches target before attack')
-#        return 'incorrect class'
-#
-#    # Run the differential evolution attack
-#    import warnings
-#    with warnings.catch_warnings():
-#        warnings.filterwarnings("ignore", category=UserWarning)
-#        result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
-#                                        callback=callback, workers=1)
-#        # result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
-#        # callback=callback)
-#    adv_image = difev_vars.perturb_fn(result.x)
-#    trans_adv_image = adv_image.ravel() ### difev_vars.model.normalize_totensor(adv_image).repeat(1, 1, 1, 1)
-#    out = difev_vars.model.run(trans_adv_image)
-#    prob = softmax(out.data.numpy()[0])
-#
-#    a = difev_vars.pred_orig
-#    b = difev_vars.pred_adv
-#
-#    if a != b:
-#        print('Successful attack')
-#        print('Prob [%s]: %f --> Prob[%s]: %f' % (difev_vars.pred_orig,
-#                                                  difev_vars.prob_orig[difev_vars.pred_orig],
-#                                                  difev_vars.pred_adv,
-#                                                  difev_vars.prob_adv[difev_vars.pred_adv]))
-#        base_name = filename.split('.')[0]
-#        name_image = fig_path + base_name + '_orig_%.3f' % (difev_vars.prob_orig[difev_vars.pred_orig]) + '.jpg'
-#        name_adv = fig_path + base_name + '_adv_%.3f' % (difev_vars.prob_adv[difev_vars.pred_adv]) + '.jpg'
-#        adv_image.save(name_adv, 'jpeg')
-#        difev_vars.image.save(name_image, 'jpeg')
-#        if attack.name == 'pixel':
-#            name_diff = fig_path + base_name + '_diff' + '.jpg'
-#            diff = PIL.ImageChops.difference(adv_image, difev_vars.image)
-#            diff.save(name_diff)
-## difev_vars.image.show()
-#        # adv_image.show()
-#        return 'success'
-#
-#    else:
-#        print('Attack failed')
-#        return 'failed'
-#
-#
-#def attack_caffe(attack, img_path, results_path, fig_path):
-#   """
-#   Run attacks on all images in the validation set
-#   """
-#   import os
-#   from shutil import copyfile
-#
-#   if attack == 'pixel':
-#       attack = PixelAttack()
-#   elif attack == 'color':
-#       attack = ColorAttack()
-#   elif attack == 'rotation':
-#       attack = RotationTranslationAttack()
-#   attack.d = 3
-#   target = 'nevus'
-#   # load model to attack
-#   caffe.set_mode_cpu()
-#
-#   # difev_vars.model.eval()
-#   results = {}
-#   if os.path.exists(results_path + os.sep + 'results.pkl'):
-#       results = pickle.load(open(results_path + 'results.pkl', 'rb'))
-#
-#   for filename in os.listdir(img_path):
-#       print(img_path + filename)
-#       assert (os.path.exists(img_path + filename))
-#       if filename + os.sep + attack.name in results:
-#           print('skipping')
-#           continue
-#       outcome = run_attack_caffe(attack, img_path, filename, target, fig_path=fig_path, save=False)
-#       # p_best = difev_vars.prob_adv[class_names.index(target)]
-#       results[filename + os.sep + attack.name] = {'outcome': outcome,
-#                                                   'orig': difev_vars.prob_orig[difev_vars.pred_orig]}
-#       # 'adv': p_best}
-#       if os.path.exists(results_path + 'results.pkl'):
-#           copyfile(results_path + 'results.pkl', results_path + 'results.old')
-#       pickle.dump(results, open(results_path + 'results.pkl', 'wb'))
 
 def test_caffe():
     model = CaffeModel()
