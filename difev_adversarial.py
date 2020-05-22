@@ -668,12 +668,27 @@ def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/")
     if model == "caffe":
         difev_vars.model = CaffeModel()
 
-    attacks = [ColorAttack(), PixelAttack, RotationTranslationAttack]
+    attacks = [ColorAttack(), PixelAttack(), RotationTranslationAttack()]
 
-    for attack in attacks:
+    results = {}
+    if os.path.exists(results_path + os.sep + 'results.pkl'):
+        results = pickle.load(open(results_path + 'results.pkl', 'rb')
+
+
+    for att in attacks:
         for filename in os.listdir(img_path):
+            if filename + os.sep + attack.name in results:
+                print('skipping')
+                continue
+
             print(f"running {str(attack)} attack")
-            run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev1/', save=False)
+            outcome = run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev1/',
+                                 save=False)
+            results[filename + os.sep + attack.name] = {'outcome': outcome,
+                                                        'orig': difev_vars.prob_orig[difev_vars.pred_orig]}
+            print(results)
+
+
 
 if __name__ == "__main__":
     main(model = "caffe")
