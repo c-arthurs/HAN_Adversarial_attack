@@ -671,16 +671,13 @@ def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/")
     attacks = [ColorAttack(), PixelAttack(), RotationTranslationAttack()]
 
     results = {}
-    if os.path.exists(results_path + os.sep + 'results.pkl'):
-        results = pickle.load(open(results_path + 'results.pkl', 'rb')
+    fig_path = './difev1/'
+    if os.path.exists(fig_path + os.sep + 'results.pkl'):
+        results = pickle.load(open(fig_path + 'results.pkl', 'rb')
 
 
-    for att in attacks:
+    for attack in attacks:
         for filename in os.listdir(img_path):
-            if filename + os.sep + attack.name in results:
-                print('skipping')
-                continue
-
             print(f"running {str(attack)} attack")
             outcome = run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev1/',
                                  save=False)
