@@ -21,12 +21,6 @@ from caffe.proto import caffe_pb2
 import numpy as np
 import cv2
 
-from torch.multiprocessing import Pool, Process, set_start_method
-try:
-     set_start_method('spawn')
-except RuntimeError:
-    pass
-
 is_cuda = classify.is_cuda
 # Global variables - do not change during runtime
 iters = 600
@@ -483,7 +477,7 @@ def run_attack(attack, img_path, filename, target, fig_path, save=True):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
         result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
-                                        callback=callback, workers=5)
+                                        callback=callback, workers=1)
         # result = differential_evolution(optimize, attack.bounds, maxiter=iters, popsize=popsize, tol=1e-5,
         # callback=callback)
     adv_image = difev_vars.perturb_fn(result.x)
@@ -667,15 +661,20 @@ def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/")
     :param img_path: str, path to the files to attack
     :return: None
     """
-    img_path = img_path
-    # if model == "pytorch":
-
-
-
+    # load model selection
+    assert model in ["pytorch", "caffe"]
+    if model == "pytorch":
+        difev_vars.model = PytorchModel()
+    if model == "caffe":
+        difev_vars.model = CaffeModel()
+    result = None
+    for filename in os.listdir(img_path):
+        attack = ColorAttack()
+        run_attack(attack, img_path=img_path, filename=filename, target='nevus', fig_path='./difev/', save=False)
 
 
 if __name__ == "__main__":
-    test()
+    main()
     # attack_caffe(attack, img_path='./melanoma/', results_path='./difev/', fig_path='./difev/' + attack + '/')
 
 # attack = 'pixel'
