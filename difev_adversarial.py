@@ -26,7 +26,7 @@ is_cuda = classify.is_cuda
 # Global variables - do not change during runtime
 iters = 600
 popsize = 20
-input_size = (299, 299)
+# input_size = (299, 299)
 class_names = ['melanoma', 'nevus']
 max_stage = 20
 
@@ -392,13 +392,16 @@ class PixelAttack:
     """
 
     def __init__(self):
+        self.input_size = (0, 0)
         self.d = 3
-        self.bounds = [(0, input_size[0]), (0, input_size[1]), (0, 255), (0, 255), (0, 255)] * self.d
+        self.bounds = [(0, self.input_size[0]), (0, self.input_size[1]), (0, 255), (0, 255), (0, 255)] * self.d
         self.name = 'pixel'
 
-    @staticmethod
-    def perturb(x):
+    # @staticmethod
+    def perturb(self, x):
         global difev_vars
+        self.input_size = difev_vars.image.shape[1:]
+        print(self.input_size)
         adv_image = np.array(difev_vars.image.copy())
 
         # calculate pixel locations and values
