@@ -401,7 +401,6 @@ class PixelAttack:
     def perturb(self, x):
         global difev_vars
         self.input_size = difev_vars.image.size
-        print(self.input_size)
         adv_image = np.array(difev_vars.image.copy())
 
         # calculate pixel locations and values
