@@ -692,8 +692,9 @@ def main(model="pytorch", img_path="./test-asan test/biopsy/malignantmelanoma/")
 
 
 if __name__ == "__main__":
-    main(model="caffe")
-    print("finished running caffe model")
+    # main(model="caffe")
+    # print("finished running caffe model")
     main(model="pytorch")
+    print("finished running pytorch model")
 
 
