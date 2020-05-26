@@ -64,6 +64,7 @@ class PytorchModel:
 
         if is_cuda: self.model.cuda()
         self.model.eval()
+        input_size = (299, 299)
         self.loader1 = transforms.Compose([
             transforms.Resize(input_size),
             transforms.CenterCrop(input_size),
